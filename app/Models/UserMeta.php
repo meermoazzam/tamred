@@ -11,6 +11,11 @@ class UserMeta extends Model
 
     protected $table = 'user_meta';
 
+
+    /**
+     * User Meta is catering following fillables
+     * 
+     */
     protected $fillable = [
         "user_id",
         "meta_key",

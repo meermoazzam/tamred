@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Services\AuthService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -29,6 +30,10 @@ class AuthController extends ApiController
     	$this->auth_service = $auth_service;
     }
 
+    public function deleteTest() {
+        return response()->json(DB::delete("delete from users where email = 'muhayminhassan930@gmail.com' "));
+    }
+
     public function signup(Request $request)
     {
         try {
@@ -37,7 +42,19 @@ class AuthController extends ApiController
                 'last_name' => 'required|max:255',
                 'nickname' => 'max:255',
                 'email' => 'required|email|unique:users,email|max:255',
+                'username' => 'required|unique:users,username|max:255',
                 'password' => 'confirmed|required',
+                'gender' => 'required|in:male,female,other',
+                'date_of_birth' => 'required|date_format:Y-m-d|before:today',
+                'location' => 'required|max:255',
+                'latitude' => 'required|numeric',
+                'longitude' => 'required|numeric',
+                'city' => 'required|max:255',
+                'state' => 'max:255',
+                'country' => 'required|max:255',
+                'terms_and_conditions' => 'required|string|in:true',
+                'privacy_policy' => 'required|string|in:true',
+                'marketing' => 'string',
             ]);
 
             if($validation->fails()){
@@ -52,8 +69,23 @@ class AuthController extends ApiController
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'nickname' => $request->nickname,
+                'username' => $request->username,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
+                'date_of_birth' => $request->date_of_birth,
+                'gender' => $request->gender,
+                'location' => $request->location,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'city' => $request->city,
+                'state' => $request->state,
+                'country' => $request->country,
+            ]);
+
+            $userMeta = UserMeta::insert([
+                ['user_id' => $user->id, 'meta_key' => 'terms_and_conditions', 'meta_value' => true],
+                ['user_id' => $user->id, 'meta_key' => 'privacy_policy', 'meta_value' => true],
+                ['user_id' => $user->id, 'meta_key' => 'marketing', 'meta_value' => $request->marketing == "true" ? true : false]
             ]);
 
             return response()->json([

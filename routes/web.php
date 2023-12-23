@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\StaticController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::get('/terms-conditions', [StaticController::class, 'termsConditions']);
+Route::get('/privacy-policy', [StaticController::class, 'privacyPolicy']);
+Route::get('/marketing', [StaticController::class, 'marketing']);
