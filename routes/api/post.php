@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\AlbumController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,11 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-include __DIR__ . '/api/auth.php';
-include __DIR__ . '/api/user.php';
-include __DIR__ . '/api/album.php';
-include __DIR__ . '/api/post.php';
+Route::middleware(['auth:sanctum'])->group(function () {
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
 });

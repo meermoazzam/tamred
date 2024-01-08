@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,5 +15,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth:sanctum'])->group(function () {
-
+    Route::get('/users/me', [UserController::class, 'whoAmI']);
+    Route::get('/users/{id}', [UserController::class, 'get']);
+    Route::get('/users', [UserController::class, 'list']);
+    Route::post('/users/follow', [UserController::class, 'follow']);
+    Route::post('/users/unfollow', [UserController::class, 'unfollow']);
+    Route::post('/users/block', [UserController::class, 'block']);
+    Route::post('/users/unblock', [UserController::class, 'unblock']);
 });

@@ -2,20 +2,12 @@
 
 namespace App\Services;
 
-use App\Services\HelperService;
-
-class AuthService {
-
-	/**
-	* @var helper_service
-	*/
-	private $helper_service;
+class AuthService extends Service {
 
 	/**
     * AuthService Constructor
-    * @param HelperService
     */
-    public function __construct(HelperService $helper_service) {
-    	$this->helper_service = $helper_service;
+    public function __construct() {
+        // initiate
     }
 }

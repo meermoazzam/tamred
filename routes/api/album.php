@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\AlbumController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,11 +14,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-include __DIR__ . '/api/auth.php';
-include __DIR__ . '/api/user.php';
-include __DIR__ . '/api/album.php';
-include __DIR__ . '/api/post.php';
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/albums', [AlbumController::class, 'create']);
+    Route::get('/albums/{id}', [AlbumController::class, 'get']);
+    Route::get('/albums', [AlbumController::class, 'list']);
+    Route::put('/albums/{id}', [AlbumController::class, 'update']);
+    Route::delete('/albums/{id}', [AlbumController::class, 'delete']);
 });

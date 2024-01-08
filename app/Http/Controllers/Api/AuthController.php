@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Mail\EmailVerification;
 use App\Mail\ForgotPassword;
+use App\Models\Album;
 use App\Models\User;
 use App\Models\UserMeta;
 use Exception;
@@ -19,15 +20,15 @@ use Symfony\Component\HttpFoundation\Response;
 class AuthController extends ApiController
 {
 	/**
-	* @var auth_service, helper_service
+	* @var authService
 	*/
-	private $auth_service;
+	private $authService;
 
 	/**
     * @param AuthService
     */
-    public function __construct(AuthService $auth_service) {
-    	$this->auth_service = $auth_service;
+    public function __construct(AuthService $authService) {
+    	$this->authService = $authService;
     }
 
     public function deleteTest() {
@@ -65,6 +66,7 @@ class AuthController extends ApiController
                 ], 422);
             }
 
+            // Creating User
             $user = User::create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
@@ -82,10 +84,18 @@ class AuthController extends ApiController
                 'country' => $request->country,
             ]);
 
+            // Inserting Meta
             $userMeta = UserMeta::insert([
                 ['user_id' => $user->id, 'meta_key' => 'terms_and_conditions', 'meta_value' => true],
                 ['user_id' => $user->id, 'meta_key' => 'privacy_policy', 'meta_value' => true],
                 ['user_id' => $user->id, 'meta_key' => 'marketing', 'meta_value' => $request->marketing == "true" ? true : false]
+            ]);
+
+            // Adding Default Album
+            $album = Album::create([
+                'user_id' => $user->id,
+                'name' => 'All favourites',
+                'status' => 'default'
             ]);
 
             return response()->json([
