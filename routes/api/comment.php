@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\AlbumController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,10 +15,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/posts', [PostController::class, 'create']);
-    Route::post('/posts/{id}', [PostController::class, 'publish']);
-    Route::get('/posts/{id}', [PostController::class, 'get']);
-    Route::get('/posts', [PostController::class, 'list']);
-    Route::put('/posts/{id}', [PostController::class, 'update']);
-    Route::delete('/posts/{id}', [PostController::class, 'delete']);
+
 });

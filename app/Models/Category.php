@@ -16,4 +16,9 @@ class Category extends Model
         'parent_id',
         'icon',
     ];
+
+    public function getIconAttribute($value)
+    {
+        return config('app.url'). $value;
+    }
 }

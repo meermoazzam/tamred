@@ -11,7 +11,7 @@ class CreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,15 @@ class CreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => 'required|string|max:1000',
+            'description' => 'nullable|string|max:10000',
+            'location' => 'required|string|max:255',
+            'latitude' => 'required|string|max:10',
+            'longitude' => 'required|string|max:10',
+            'city' => 'nullable|string|max:200',
+            'state' => 'nullable|string|max:200',
+            'country' => 'nullable|string|max:200',
+            'tags' => 'nullable|array',
         ];
     }
 }
