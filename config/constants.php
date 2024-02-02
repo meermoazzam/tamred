@@ -12,6 +12,14 @@ return [
             'deleted',
         ]
     ],
+    'posts' => [
+        'status' => [
+            'draft',
+            'published',
+            'archived',
+            'deleted',
+        ]
+    ],
 
 ];
 

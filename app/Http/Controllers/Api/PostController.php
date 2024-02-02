@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Post\CreateRequest;
+use App\Http\Requests\Post\ListRequest;
 use App\Http\Requests\Post\UpdateRequest;
 use App\Services\PostService;
 use Illuminate\Http\JsonResponse;
@@ -34,12 +35,12 @@ class PostController extends Controller
 
     public function get($id): JsonResponse
     {
-        return $this->postService->get(auth()->id(), $id);
+        return $this->postService->get($id);
     }
 
-    public function list(): JsonResponse
+    public function list(ListRequest $request): JsonResponse
     {
-        return $this->postService->list(auth()->id());
+        return $this->postService->list();
     }
 
     public function update(UpdateRequest $request, $id): JsonResponse

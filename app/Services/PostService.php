@@ -60,26 +60,45 @@ class PostService extends Service {
         }
     }
 
-    public function get(int $userId, int $id): JsonResponse
+    public function get(int $id): JsonResponse
     {
         try{
-            $album = Album::where('id', $id)->where('user_id', $userId)->statusNot('deleted')->first();
-            return $this->jsonSuccess(200, 'Success', ['album' => $album ? new AlbumResource($album) : []]);
+            $post = Post::where('id', $id)->with('user')->first();
+            return $this->jsonSuccess(200, 'Success', ['post' => $post ? new PostResource($post) : []]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
 
-    public function list(int|null $userId = null): JsonResponse
+    public function list(): JsonResponse
     {
         try{
-            $albums = Album::query();
-            $albums->when($userId, function (Builder $query) use ($userId) {
-                $query->where('user_id', $userId);
-            })->whereLike('name', request()->name)
-            ->statusNot('deleted');
+            $posts = Post::query();
+            $posts->when(request()->user_id, function (Builder $query) {
+                $query->where('user_id', request()->user_id);
+            })
+            ->when(request()->title, function (Builder $query) {
+                $query->whereLike('title', request()->title);
+            })
+            ->when(request()->description, function (Builder $query) {
+                $query->whereLike('description', request()->description);
+            })
+            ->when(request()->city, function (Builder $query) {
+                $query->whereLike('city', request()->city);
+            })
+            ->when(request()->state, function (Builder $query) {
+                $query->whereLike('state', request()->state);
+            })
+            ->when(request()->country, function (Builder $query) {
+                $query->whereLike('country', request()->country);
+            })
+            ->when(request()->tags, function (Builder $query) {
+                $query->whereLike('tags', '"' . request()->tags . '"');
+            })
+            ->status('published')
+            ->with('user');
 
-            return $this->jsonSuccess(200, 'Success', ['albums' => AlbumResource::collection($albums->paginate($this->perPage))->resource]);
+            return $this->jsonSuccess(200, 'Success', ['posts' => PostResource::collection($posts->paginate($this->perPage))->resource]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
@@ -88,13 +107,13 @@ class PostService extends Service {
     public function update(int $userId, int $id, array $data): JsonResponse
     {
         try{
-            $isUpdated = Album::where('id', $id)->where('user_id', $userId)
-                ->statusNot(['deleted', 'default'])
-                ->update(['name' => $data['name']]);
+            $isUpdated = Post::where('id', $id)->where('user_id', $userId)
+                ->statusNot(['deleted'])
+                ->update($data);
             if( $isUpdated ) {
-                return $this->jsonSuccess(200, 'Updated Successfully', ['album' => new NameResource(Album::find($id))]);
+                return $this->jsonSuccess(200, 'Updated Successfully', ['post' => new PostResource(Post::find($id))]);
             } else {
-                return $this->jsonError(403, 'No album found to udpate');
+                return $this->jsonError(403, 'No post found to udpate');
             }
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -104,7 +123,7 @@ class PostService extends Service {
     public function delete(int $userId, int $id): JsonResponse
     {
         try{
-            $is_deleted = Album::where('id', $id)->where('user_id', $userId)->statusNot(['default'])
+            $is_deleted = Post::where('id', $id)->where('user_id', $userId)
                 ->update(['status' => 'deleted']);
             if( $is_deleted ) {
                 return $this->jsonSuccess(204, 'Post Deleted successfully');
