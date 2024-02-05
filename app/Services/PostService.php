@@ -11,12 +11,14 @@ use Illuminate\Http\Request;
 
 class PostService extends Service {
 
-    private $perPage;
+    private $perPage, $orderBy, $orderIn;
 	/**
     * PostService Constructor
     */
     public function __construct() {
         $this->perPage = request()->per_page ?? 10;
+        $this->orderBy = request()->order_by ?? 'id';
+        $this->orderIn = request()->order_in ?? 'asc';
     }
 
     public function create(int $userId, Request $data): JsonResponse
@@ -46,6 +48,7 @@ class PostService extends Service {
     {
         try{
             $is_updated = Post::where('user_id', $user_id)->where('id', $id)
+            ->status('draft')
             ->update([
                 'status' => 'published',
             ]);
@@ -63,7 +66,7 @@ class PostService extends Service {
     public function get(int $id): JsonResponse
     {
         try{
-            $post = Post::where('id', $id)->with('user')->first();
+            $post = Post::where('id', $id)->with('user')->status('published')->first();
             return $this->jsonSuccess(200, 'Success', ['post' => $post ? new PostResource($post) : []]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -96,7 +99,8 @@ class PostService extends Service {
                 $query->whereLike('tags', '"' . request()->tags . '"');
             })
             ->status('published')
-            ->with('user');
+            ->with('user')
+            ->orderBy($this->orderBy, $this->orderIn);
 
             return $this->jsonSuccess(200, 'Success', ['posts' => PostResource::collection($posts->paginate($this->perPage))->resource]);
         } catch (Exception $e) {
@@ -108,7 +112,7 @@ class PostService extends Service {
     {
         try{
             $isUpdated = Post::where('id', $id)->where('user_id', $userId)
-                ->statusNot(['deleted'])
+                ->statusNot(['archived', 'deleted'])
                 ->update($data);
             if( $isUpdated ) {
                 return $this->jsonSuccess(200, 'Updated Successfully', ['post' => new PostResource(Post::find($id))]);

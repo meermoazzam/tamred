@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('post_id');
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->string('description', 10000)->nullable();
+            $table->string('status', 50);
             $table->timestamps();
         });
     }

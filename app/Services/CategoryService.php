@@ -10,12 +10,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class CategoryService extends Service {
 
-    private $perPage;
+    private $perPage, $orderBy, $orderIn;
 	/**
     * CategoryService Constructor
     */
     public function __construct() {
         $this->perPage = request()->per_page ?? 10;
+        $this->orderBy = request()->order_by ?? 'id';
+        $this->orderIn = request()->order_in ?? 'asc';
     }
 
     public function get(int $id): JsonResponse
@@ -32,7 +34,8 @@ class CategoryService extends Service {
     {
         try{
             $categories = Category::query();
-            $categories->whereLike('name', request()->name);
+            $categories->whereLike('name', request()->name)
+            ->orderBy($this->orderBy, $this->orderIn);
 
             return $this->jsonSuccess(200, 'Success', ['categories' => CategoryResource::collection($categories->paginate($this->perPage))->resource]);
         } catch (Exception $e) {

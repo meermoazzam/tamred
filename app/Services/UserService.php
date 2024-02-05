@@ -13,12 +13,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class UserService extends Service {
 
-    private $perPage;
+    private $perPage, $orderBy, $orderIn;
 	/**
     * UserService Constructor
     */
     public function __construct() {
         $this->perPage = request()->per_page ?? 10;
+        $this->orderBy = request()->order_by ?? 'id';
+        $this->orderIn = request()->order_in ?? 'asc';
     }
 
     public function whoAmI(): JsonResponse
@@ -34,7 +36,7 @@ class UserService extends Service {
     public function get(int $id): JsonResponse
     {
         try{
-            $user = User::find($id);
+            $user = User::withCount(['post', 'follower', 'following'])->find($id);
             return $this->jsonSuccess(200, 'Success', ['user' => $user ? new UserResource($user) : []]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -51,7 +53,9 @@ class UserService extends Service {
                 $query->orWhereLike('last_name', request()->last_name);
             })->when(request()->nickname, function (Builder $query) {
                 $query->orWhereLike('nickname', request()->nickname);
-            });
+            })
+            ->withCount(['post', 'follower', 'following'])
+            ->orderBy($this->orderBy, $this->orderIn);
 
             return $this->jsonSuccess(200, 'Success', ['users' => UserResource::collection($users->paginate($this->perPage))->resource]);
         } catch (Exception $e) {

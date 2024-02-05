@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -58,4 +59,19 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function follower(): HasMany
+    {
+        return $this->hasMany(FollowUser::class, 'followed_id', 'id')->isApproved(true);
+    }
+
+    public function following(): HasMany
+    {
+        return $this->hasMany(FollowUser::class, 'user_id', 'id')->isApproved(true);
+    }
+
+    public function post(): HasMany
+    {
+        return $this->hasMany(Post::class, 'user_id', 'id')->status('published');
+    }
 }

@@ -20,6 +20,13 @@ return [
             'deleted',
         ]
     ],
+    'comments' => [
+        'status' => [
+            'published',
+            'archived',
+            'deleted',
+        ]
+    ],
 
 ];
 

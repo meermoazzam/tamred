@@ -23,6 +23,10 @@ class UserResource extends JsonResource
             'gender' => $this->gender,
             'city' => $this->city,
             'country' => $this->country,
+            'post_count' => $this->post_count ?? 0,
+            'follower_count' => $this->follower_count ?? 0,
+            'following_count' => $this->following_count ?? 0,
+            'created_at' => $this->created_at,
         ];
     }
 }

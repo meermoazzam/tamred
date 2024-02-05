@@ -11,7 +11,7 @@ class CreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class CreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'post_id' => 'required|integer',
+            'parent_id' => 'sometimes|nullable|integer',
+            'description' => 'required|string|max:10000',
         ];
     }
 }

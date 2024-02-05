@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AlbumController;
+use App\Http\Controllers\Api\CommentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,5 +16,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth:sanctum'])->group(function () {
-
+    Route::post('/comments', [CommentController::class, 'create']);
+    Route::get('/comments', [CommentController::class, 'list']);
+    Route::put('/comments/{id}', [CommentController::class, 'update']);
+    Route::delete('/comments/{id}', [CommentController::class, 'delete']);
 });
