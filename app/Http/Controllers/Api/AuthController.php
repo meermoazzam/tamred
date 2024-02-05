@@ -32,7 +32,7 @@ class AuthController extends ApiController
     }
 
     public function deleteTest() {
-        return response()->json(DB::delete("delete from users where email = 'muhayminhassan930@gmail.com'"));
+        return response()->json(DB::delete("delete from users where email = 'talhaarshadllc@gmail.com'"));
     }
 
     public function signup(Request $request)
@@ -48,8 +48,8 @@ class AuthController extends ApiController
                 'gender' => 'required|in:male,female,other',
                 'date_of_birth' => 'required|date_format:Y-m-d|before:today',
                 'location' => 'required|max:255',
-                'latitude' => 'required|numeric',
-                'longitude' => 'required|numeric',
+                'latitude' => 'required',
+                'longitude' => 'required',
                 'city' => 'required|max:255',
                 'state' => 'max:255',
                 'country' => 'required|max:255',
@@ -86,9 +86,9 @@ class AuthController extends ApiController
 
             // Inserting Meta
             $userMeta = UserMeta::insert([
-                ['user_id' => $user->id, 'meta_key' => 'terms_and_conditions', 'meta_value' => true],
-                ['user_id' => $user->id, 'meta_key' => 'privacy_policy', 'meta_value' => true],
-                ['user_id' => $user->id, 'meta_key' => 'marketing', 'meta_value' => $request->marketing == "true" ? true : false]
+                ['user_id' => $user->id, 'meta_key' => 'terms_and_conditions', 'meta_value' => true, 'created_at' => now(), 'updated_at' => now()],
+                ['user_id' => $user->id, 'meta_key' => 'privacy_policy', 'meta_value' => true, 'created_at' => now(), 'updated_at' => now()],
+                ['user_id' => $user->id, 'meta_key' => 'marketing', 'meta_value' => $request->marketing == "true" ? true : false, 'created_at' => now(), 'updated_at' => now()],
             ]);
 
             // Adding Default Album
