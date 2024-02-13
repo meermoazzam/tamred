@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Post\AttachCategory;
+use App\Http\Requests\Post\BindAlbum;
 use App\Http\Requests\Post\CreateRequest;
 use App\Http\Requests\Post\ListRequest;
 use App\Http\Requests\Post\UpdateRequest;
@@ -52,4 +54,15 @@ class PostController extends Controller
     {
         return $this->postService->delete(auth()->id(), $id);
     }
+
+    public function attachCategory(AttachCategory $request, $id): JsonResponse
+    {
+        return $this->postService->attachCategory(auth()->id(), $id);
+    }
+
+    public function bindAlbum(BindAlbum $request, $id): JsonResponse
+    {
+        return $this->postService->bindAlbum(auth()->id(), $id);
+    }
+
 }

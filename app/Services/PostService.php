@@ -6,6 +6,7 @@ use Exception;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PostResource;
+use App\Models\Album;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -48,7 +49,7 @@ class PostService extends Service {
     {
         try{
             $is_updated = Post::where('user_id', $user_id)->where('id', $id)
-            ->status('draft')
+            ->statusNot(['archived', 'deleted'])
             ->update([
                 'status' => 'published',
             ]);
@@ -133,6 +134,48 @@ class PostService extends Service {
                 return $this->jsonSuccess(204, 'Post Deleted successfully');
             } else {
                 return $this->jsonError(403, 'No post found to delete');
+            }
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function attachCategory(int $userId, int $id): JsonResponse
+    {
+        try{
+            $post = Post::where('id', $id)->where('user_id', $userId)
+                ->statusNot(['archived', 'deleted'])->first();
+            if( $post ) {
+                $post->categories()->sync(request()->category_ids);
+                return $this->jsonSuccess(200, 'Categories attached!');
+            } else {
+                return $this->jsonError(403, 'No post found to attach category');
+            }
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function bindAlbum(int $userId, int $id): JsonResponse
+    {
+        try{
+            $album = Album::where('id', request()->album_id)->where('user_id', $userId)
+                ->statusNot(['deleted'])->exists();
+
+            if($album || (!request()->album_id) ) {
+                $is_updated = Post::where('id', $id)->where('user_id', $userId)
+                    ->statusNot(['archived', 'deleted'])
+                    ->update([
+                        'album_id' => request()->album_id,
+                ]);
+
+                if( $is_updated ) {
+                    return $this->jsonSuccess(200, 'Post updated!');
+                } else {
+                    return $this->jsonError(403, 'No post found');
+                }
+            } else {
+                return $this->jsonError(403, 'Album not found');
             }
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());

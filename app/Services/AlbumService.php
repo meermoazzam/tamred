@@ -7,6 +7,7 @@ use App\Models\Album;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\NameResource;
 use App\Http\Resources\AlbumResource;
+use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
 
 class AlbumService extends Service {
@@ -80,6 +81,8 @@ class AlbumService extends Service {
             $is_deleted = Album::where('id', $id)->where('user_id', $userId)->statusNot(['default'])
                 ->update(['status' => 'deleted']);
             if( $is_deleted ) {
+                Post::where('album_id', $id)->update(['status' => 'deleted']);
+
                 return $this->jsonSuccess(204, 'Album Deleted successfully');
             } else {
                 return $this->jsonError(403, 'No album found to delete');

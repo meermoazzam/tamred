@@ -21,4 +21,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/posts', [PostController::class, 'list']);
     Route::put('/posts/{id}', [PostController::class, 'update']);
     Route::delete('/posts/{id}', [PostController::class, 'delete']);
+
+    Route::put('/posts/{id}/category', [PostController::class, 'attachCategory']);
+    Route::put('/posts/{id}/album', [PostController::class, 'bindAlbum']);
 });
