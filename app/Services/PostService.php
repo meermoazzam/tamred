@@ -6,7 +6,9 @@ use Exception;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PostResource;
+use App\Http\Resources\ReactionResource;
 use App\Models\Album;
+use App\Models\Reaction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -176,6 +178,71 @@ class PostService extends Service {
                 }
             } else {
                 return $this->jsonError(403, 'Album not found');
+            }
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function react(int $userId, int $id): JsonResponse
+    {
+        try{
+            // check if post exist or available to react
+            $post = Post::where('id', $id)->status(['published'])->first();
+
+            if($post) {
+                if(true == request()->react) {
+                    // create the reaction
+                    $reaction = Reaction::firstOrCreate([
+                        'user_id' => $userId,
+                        'type' => request()->type,
+                        'reactable_id' => $id,
+                        'reactable_class' => $post->getMorphClass(),
+                    ],[]);
+
+                    // update the total likes column in posts
+                    if($reaction->wasRecentlyCreated) $post->increment('total_likes');
+
+                } else {
+                    // remove the reaction
+                    $is_deleted = Reaction::where('user_id', $userId)
+                        ->where('type', request()->type)
+                        ->where('reactable_id', $id)
+                        ->where('reactable_class', $post->getMorphClass())
+                        ->delete();
+
+                    // update the total likes column in posts
+                    if($is_deleted) $post->decrement('total_likes');
+                }
+                return $this->jsonSuccess(200, 'Reaction updated!');
+            } else {
+                return $this->jsonError(403, 'Post not found');
+            }
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+
+    public function reactList($id): JsonResponse
+    {
+        try{
+            // check if post exist or available to react
+            $post = Post::where('id', $id)->status(['published'])->first();
+
+            if($post) {
+                $reactions = Reaction::query();
+                $reactions->when(request()->type, function (Builder $query) {
+                    $query->where('type', request()->type);
+                })
+                ->where('reactable_id', $id)
+                ->where('reactable_class', $post->getMorphClass())
+                ->with('user')
+                ->orderBy($this->orderBy, $this->orderIn);
+
+                return $this->jsonSuccess(200, 'Success', ['reactions' => ReactionResource::collection($reactions->paginate($this->perPage))->resource]);
+            } else {
+                return $this->jsonError(403, 'Post not found');
             }
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());

@@ -24,4 +24,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::put('/posts/{id}/category', [PostController::class, 'attachCategory']);
     Route::put('/posts/{id}/album', [PostController::class, 'bindAlbum']);
+    Route::post('/posts/{id}/react', [PostController::class, 'react']);
+    Route::get('/posts/{id}/react', [PostController::class, 'reactList']);
 });

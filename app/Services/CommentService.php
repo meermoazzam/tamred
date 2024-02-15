@@ -101,12 +101,12 @@ class CommentService extends Service {
             ->statusNot('deleted');
 
             // get total commetents to be deleted & delete comments
-            $selected_comments = $comments->count();
+            $selectedCommentsCount = $comments->count();
             $isDeleted = $comments->update(['status' => 'deleted']);
 
             if( $isDeleted ) {
                 // update comments count in posts.
-                $updatePostCommentCount = Post::where('id', $post_id)->decrement('total_comments', $selected_comments);
+                $updatePostCommentCount = Post::where('id', $post_id)->decrement('total_comments', $selectedCommentsCount);
                 return $this->jsonSuccess(204, 'Comment Deleted successfully');
             } else {
                 return $this->jsonError(403, 'No comment found to delete');

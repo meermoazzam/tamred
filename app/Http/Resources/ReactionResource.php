@@ -14,6 +14,11 @@ class ReactionResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'user' => new UserShortResource($this->whenLoaded('user')),
+            'type' => $this->type,
+            'created_at' => $this->created_at,
+        ];
     }
 }

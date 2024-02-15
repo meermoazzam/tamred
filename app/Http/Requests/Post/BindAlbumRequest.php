@@ -5,7 +5,7 @@ namespace App\Http\Requests\Post;
 use App\Models\Album;
 use Illuminate\Foundation\Http\FormRequest;
 
-class BindAlbum extends FormRequest
+class BindAlbumRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Post\AttachCategory;
-use App\Http\Requests\Post\BindAlbum;
+use App\Http\Requests\Post\AttachCategoryRequest;
+use App\Http\Requests\Post\BindAlbumRequest;
 use App\Http\Requests\Post\CreateRequest;
 use App\Http\Requests\Post\ListRequest;
+use App\Http\Requests\Post\ReactRequest;
 use App\Http\Requests\Post\UpdateRequest;
 use App\Services\PostService;
 use Illuminate\Http\JsonResponse;
@@ -55,14 +56,24 @@ class PostController extends Controller
         return $this->postService->delete(auth()->id(), $id);
     }
 
-    public function attachCategory(AttachCategory $request, $id): JsonResponse
+    public function attachCategory(AttachCategoryRequest $request, $id): JsonResponse
     {
         return $this->postService->attachCategory(auth()->id(), $id);
     }
 
-    public function bindAlbum(BindAlbum $request, $id): JsonResponse
+    public function bindAlbum(BindAlbumRequest $request, $id): JsonResponse
     {
         return $this->postService->bindAlbum(auth()->id(), $id);
+    }
+
+    public function react(ReactRequest $request, $id): JsonResponse
+    {
+        return $this->postService->react(auth()->id(), $id);
+    }
+
+    public function reactList($id): JsonResponse
+    {
+        return $this->postService->reactList($id);
     }
 
 }

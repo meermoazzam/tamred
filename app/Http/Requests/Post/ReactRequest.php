@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Post;
 
-use App\Models\Category;
+use App\Models\Album;
 use Illuminate\Foundation\Http\FormRequest;
 
-class AttachCategory extends FormRequest
+class ReactRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,8 +23,8 @@ class AttachCategory extends FormRequest
     public function rules(): array
     {
         return [
-            'category_ids' => 'required|array',
-            'category_ids.*' => 'integer|exists:' . (new Category())->getTable() . ',id',
+            'type' => 'required|integer',
+            'react' => 'required|boolean',
         ];
     }
 }
