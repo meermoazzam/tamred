@@ -33,6 +33,23 @@ return [
             'deleted',
         ]
     ],
+    'chat_messages' => [
+        'status' => [
+            'published',
+            'deleted',
+        ]
+    ],
+    'chat_participants' => [
+        'status' => [
+            'active',
+            'left',
+        ],
+        'message_status' => [
+            '0', // sent to server
+            '1', // message delivered by user
+            '2', // message read by user
+        ]
+    ],
     'user_meta' => [
         'terms_and_conditions' => true,
         'privacy_policy' => true,

@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 include __DIR__ . '/api/auth.php';
 include __DIR__ . '/api/album.php';
 include __DIR__ . '/api/category.php';
+include __DIR__ . '/api/chat.php';
 include __DIR__ . '/api/comment.php';
 include __DIR__ . '/api/post.php';
 include __DIR__ . '/api/user.php';

@@ -12,12 +12,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AlbumService extends Service {
 
-    private $perPage;
+    private $perPage, $orderBy, $orderIn;
 	/**
     * AlbumService Constructor
     */
     public function __construct() {
         $this->perPage = request()->per_page ?? 10;
+        $this->orderBy = request()->order_by ?? 'id';
+        $this->orderIn = request()->order_in ?? 'asc';
     }
 
     public function create(int $userId, array $data): JsonResponse
@@ -51,6 +53,7 @@ class AlbumService extends Service {
             $albums->when($userId, function (Builder $query) use ($userId) {
                 $query->where('user_id', $userId);
             })->whereLike('name', request()->name)
+            ->orderBy($this->orderBy, $this->orderIn)
             ->statusNot('deleted');
 
             return $this->jsonSuccess(200, 'Success', ['albums' => AlbumResource::collection($albums->paginate($this->perPage))->resource]);
