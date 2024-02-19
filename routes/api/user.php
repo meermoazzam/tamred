@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users/me', [UserController::class, 'whoAmI']);
+    Route::post('/users/categories', [UserController::class, 'attachCategories']);
     Route::get('/users/{id}', [UserController::class, 'get']);
     Route::get('/users', [UserController::class, 'list']);
     Route::post('/users/follow', [UserController::class, 'follow']);

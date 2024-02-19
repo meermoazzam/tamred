@@ -142,7 +142,7 @@ class PostService extends Service {
         }
     }
 
-    public function attachCategory(int $userId, int $id): JsonResponse
+    public function attachCategories(int $userId, int $id): JsonResponse
     {
         try{
             $post = Post::where('id', $id)->where('user_id', $userId)

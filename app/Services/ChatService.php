@@ -37,7 +37,10 @@ class ChatService extends Service {
             if( !$conversation ) {
                 $conversation = Conversation::create([]);
                 $participantsData = array_map(function ($user_id) {
-                    return ['user_id' => $user_id];
+                    return [
+                        'user_id' => $user_id,
+                        'seen_at' => now(),
+                    ];
                 }, $participantIds);
                 $conversation->participants()->createMany($participantsData);
                 $conversation->load('participants.user');
@@ -61,7 +64,28 @@ class ChatService extends Service {
             ->with(['participants.user', 'latestMessage'])
             ->orderBy('updated_at', 'desc');
 
-            return $this->jsonSuccess(200, 'Success', ['conversations' => ConversationResource::collection($conversations->paginate($this->perPage))->resource]);
+
+            $conversations = $conversations->paginate($this->perPage);
+
+            // unseen message counts
+            $updatedConversations = $conversations->getCollection()->map(function($conversation) use ($userId) {
+                $participant = $conversation->participants->where('user_id', $userId)->first();
+                $messageStatus = $participant->message_status;
+                $seenAt = $participant->seen_at;
+                if($messageStatus != 2) {
+                    $messageCount = Message::where('conversation_id', $conversation->id)
+                        ->whereNot('user_id', $userId)->where('created_at', '>', $seenAt)->count();
+                } else {
+                    $messageCount = 0;
+                }
+
+                $conversation->unseen_message_count = $messageCount;
+                return $conversation;
+            });
+
+            $conversations->setCollection($updatedConversations);
+
+            return $this->jsonSuccess(200, 'Success', ['conversations' => ConversationResource::collection($conversations)->resource]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
@@ -155,7 +179,11 @@ class ChatService extends Service {
                 $query->whereHas('conversation', function (Builder $query) {
                     $query->where($query->qualifyColumn('id'), request()->conversation_id);
                 });
-            })->where('user_id', $userId)->update(['message_status' => 2]);
+            })->where('user_id', $userId)
+            ->update([
+                'message_status' => 2,
+                'seen_at' => now(),
+            ]);
 
             if( $isRead ) {
                 return $this->jsonSuccess(200, 'Successfully marked as read!');

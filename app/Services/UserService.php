@@ -26,7 +26,7 @@ class UserService extends Service {
     public function whoAmI(): JsonResponse
     {
         try{
-            $user = User::find(auth()->id());
+            $user = User::with('categories')->find(auth()->id());
             return $this->jsonSuccess(200, 'Success', ['user' => new PersonalResource($user)]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -58,6 +58,21 @@ class UserService extends Service {
             ->orderBy($this->orderBy, $this->orderIn);
 
             return $this->jsonSuccess(200, 'Success', ['users' => UserResource::collection($users->paginate($this->perPage))->resource]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function attachCategories(int $userId): JsonResponse
+    {
+        try{
+            $user = User::where('id', $userId)->first();
+            if( $user ) {
+                $user->userCategories()->sync(request()->category_ids);
+                return $this->jsonSuccess(200, 'Categories saved!');
+            } else {
+                return $this->jsonError(403, 'No user found to attach category');
+            }
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

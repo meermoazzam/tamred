@@ -18,6 +18,7 @@ class ConversationResource extends JsonResource
             'id' => $this->id,
             'participants' => ParticipantResource::collection($this->whenLoaded('participants')),
             'latest_message' => new MessageResource($this->whenLoaded('latestMessage')),
+            'unseen_message_count' => $this->unseen_message_count,
             'created_at' => $this->created_at,
         ];
     }

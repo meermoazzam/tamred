@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\User\ActionRequest;
+use App\Http\Requests\User\AttachCategoryRequest;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 
@@ -33,6 +34,11 @@ class UserController extends ApiController
     public function list(): JsonResponse
     {
         return $this->userService->list();
+    }
+
+    public function attachCategories(AttachCategoryRequest $request): JsonResponse
+    {
+        return $this->userService->attachCategories(auth()->id());
     }
 
     public function follow(ActionRequest $request): JsonResponse

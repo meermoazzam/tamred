@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Album extends Model
 {
@@ -28,5 +29,15 @@ class Album extends Model
     {
         $status = is_array($status) ? $status : [$status];
         return $query->whereNotIn('status', $status);
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(Post::class);
     }
 }

@@ -18,6 +18,7 @@ class Participant extends Model
         'conversation_id',
         'status',
         'message_status',
+        'seen_at',
     ];
 
     public function user()

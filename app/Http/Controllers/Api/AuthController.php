@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\PersonalResource;
 use App\Mail\EmailVerification;
 use App\Mail\ForgotPassword;
 use App\Models\Album;
@@ -101,7 +102,8 @@ class AuthController extends ApiController
             return response()->json([
                 'status' => true,
                 'message' => 'User Created Successfully',
-                'token' => $user->createToken("API TOKEN")->plainTextToken
+                'token' => $user->createToken("API TOKEN")->plainTextToken,
+                'user' => new PersonalResource(User::with('categories')->find($user->id))
             ], 200);
 
         } catch (Exception $exception) {
@@ -136,7 +138,8 @@ class AuthController extends ApiController
                     return response()->json([
                         'status' => true,
                         'message' => 'User Logged In Successfully',
-                        'token' => $user->createToken("API TOKEN")->plainTextToken
+                        'token' => $user->createToken("API TOKEN")->plainTextToken,
+                        'user' => new PersonalResource(User::with('categories')->find($user->id))
                     ], 200);
                 }
 	    	}

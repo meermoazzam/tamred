@@ -39,7 +39,9 @@ class AlbumService extends Service {
     public function get(int $userId, int $id): JsonResponse
     {
         try{
-            $album = Album::where('id', $id)->where('user_id', $userId)->statusNot('deleted')->first();
+            $album = Album::where('id', $id)->where('user_id', $userId)
+                ->withCount('posts','media')
+                ->statusNot('deleted')->first();
             return $this->jsonSuccess(200, 'Success', ['album' => $album ? new AlbumResource($album) : []]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -53,6 +55,7 @@ class AlbumService extends Service {
             $albums->when($userId, function (Builder $query) use ($userId) {
                 $query->where('user_id', $userId);
             })->whereLike('name', request()->name)
+            ->withCount('posts','media')
             ->orderBy($this->orderBy, $this->orderIn)
             ->statusNot('deleted');
 

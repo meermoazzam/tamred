@@ -56,9 +56,9 @@ class PostController extends Controller
         return $this->postService->delete(auth()->id(), $id);
     }
 
-    public function attachCategory(AttachCategoryRequest $request, $id): JsonResponse
+    public function attachCategories(AttachCategoryRequest $request, $id): JsonResponse
     {
-        return $this->postService->attachCategory(auth()->id(), $id);
+        return $this->postService->attachCategories(auth()->id(), $id);
     }
 
     public function bindAlbum(BindAlbumRequest $request, $id): JsonResponse
