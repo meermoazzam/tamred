@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Comment;
+namespace App\Http\Requests\Media;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ListRequest extends FormRequest
+class GeneratePostUrl extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +23,9 @@ class ListRequest extends FormRequest
     {
         return [
             'post_id' => 'required|integer',
-            'parent_id' => 'nullable|integer',
+            'name' => 'required|string',
+            'size' => 'required|integer',
+            'type' => 'required|string|in:image,video',
         ];
     }
 }

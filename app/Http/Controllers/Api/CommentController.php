@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Comment\CreateRequest;
+use App\Http\Requests\Comment\ListRequest;
 use App\Http\Requests\Comment\UpdateRequest;
 use App\Services\CommentService;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +28,7 @@ class CommentController extends Controller
         return $this->commentService->create(auth()->id(), $request);
     }
 
-    public function list(): JsonResponse
+    public function list(ListRequest $request): JsonResponse
     {
         return $this->commentService->list();
     }

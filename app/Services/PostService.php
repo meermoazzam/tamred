@@ -69,7 +69,7 @@ class PostService extends Service {
     public function get(int $id): JsonResponse
     {
         try{
-            $post = Post::where('id', $id)->with('user')->status('published')->first();
+            $post = Post::where('id', $id)->with('user', 'media')->status('published')->first();
             return $this->jsonSuccess(200, 'Success', ['post' => $post ? new PostResource($post) : []]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -102,7 +102,7 @@ class PostService extends Service {
                 $query->whereLike('tags', '"' . request()->tags . '"');
             })
             ->status('published')
-            ->with('user')
+            ->with('user', 'media')
             ->orderBy($this->orderBy, $this->orderIn);
 
             return $this->jsonSuccess(200, 'Success', ['posts' => PostResource::collection($posts->paginate($this->perPage))->resource]);

@@ -68,4 +68,9 @@ class Post extends Model
     {
         return $this->belongsToMany(Category::class, (new CategoryPost())->getTable());
     }
+
+    public function media()
+    {
+        return $this->morphMany(Media::class, 'mediable', 'mediable_class', 'mediable_id', 'id');
+    }
 }

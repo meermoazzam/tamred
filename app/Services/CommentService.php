@@ -56,6 +56,7 @@ class CommentService extends Service {
             $comments->whereHas('post', function (Builder $query) {
                 $query->where($query->qualifyColumn('status'), 'published');
             })
+            ->where('post_id', request()->post_id)
             ->where('parent_id', request()->parent_id)
             ->status('published')
             ->with('user')
