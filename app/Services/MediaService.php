@@ -39,7 +39,7 @@ class MediaService extends Service {
                     'version' => 'latest',
                 ]);
 
-                $slug = $userId . '/' . $post->id . '/' . strtotime(now()) . '-' . Str::random(5) . '-' . request()->name;
+                $slug = 'tamred/' . $userId . '/' . $post->id . '/' . strtotime(now()) . '-' . Str::random(5) . '-' . request()->name;
 
                 // Get the bucket name and object key
                 $bucket = env("AWS_BUCKET");
@@ -48,12 +48,12 @@ class MediaService extends Service {
                 // Generate a pre-signed URL for the S3 object
                 $cmd = $s3->getCommand('PutObject', [
                     'Bucket' => $bucket,
-                    'Key' => $key
+                    'Key' => $key,
+                    'ACL' => 'public-read',
                 ]);
 
 
                 $presignedUrl = urldecode((string)$s3->createPresignedRequest($cmd, '+15 minutes')->getUri());
-                $shortUrl = explode('?', $presignedUrl)[0];
 
                 // when success save the data
                 $media = Media::create([
@@ -62,8 +62,8 @@ class MediaService extends Service {
                     "name" => request()->name,
                     "size" => request()->size,
                     "mediable_id" => $post->id,
-                    "mediable_class" => $post->getMorphClass(),
-                    "url" => $shortUrl,
+                    "mediable_type" => $post->getMorphClass(),
+                    "key" => $slug,
                 ]);
                 return $this->jsonSuccess(201, "Success", ['request_type' => "PUT", "url" => $presignedUrl]);
             } else {

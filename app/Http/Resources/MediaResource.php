@@ -17,9 +17,9 @@ class MediaResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'type' => $this->typeame,
+            'type' => $this->type,
             'size' => $this->size,
-            'url' => $this->url,
+            'url' => $this->key,
             'created_at' => $this->created_at,
         ];
     }

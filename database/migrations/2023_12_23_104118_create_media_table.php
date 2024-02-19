@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('mediable_id');
-            $table->string('mediable_class', 100);
+            $table->string('mediable_type', 100);
             $table->string('name');
             $table->string('type', 50);
             $table->integer('size');
-            $table->string('url');
+            $table->string('key');
             $table->timestamps();
         });
     }
