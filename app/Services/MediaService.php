@@ -75,4 +75,53 @@ class MediaService extends Service {
         }
     }
 
+    public function createBulkPresignedUrls(int $userId, int $postId, array|null $media) {
+        $media = $media ?? [];
+        try{
+            $s3 = new S3Client([
+                'region' => env('AWS_DEFAULT_REGION'),
+                'version' => 'latest',
+            ]);
+            $bucket = env("AWS_BUCKET");
+
+            $links = [];
+            for ($i=0; $i < count($media); $i++) {
+
+                $fileExtension = pathinfo($media[$i]['name'], PATHINFO_EXTENSION);
+
+                $slug = 'tamred/' . $userId . '/' . $postId . '/' . strtotime(now()) . '-' . Str::random(10) . '.' . $fileExtension;
+
+                // Generate a pre-signed URL for the S3 object
+                $cmd = $s3->getCommand('PutObject', [
+                    'Bucket' => $bucket,
+                    'Key' => $slug,
+                    'ACL' => 'public-read',
+                ]);
+
+                $presignedUrl = urldecode((string)$s3->createPresignedRequest($cmd, '+20 minutes')->getUri());
+
+                // when success save the data
+                $createdMediaObject = Media::create([
+                    "user_id" => $userId,
+                    "type" => $media[$i]['type'],
+                    "name" => $media[$i]['name'],
+                    "size" => $media[$i]['size'],
+                    "mediable_id" => $postId,
+                    "mediable_type" => (new Post)->getMorphClass(),
+                    "key" => $slug,
+                    "sequence" => $i + 1,
+                ]);
+
+                $links[] = [
+                    'name' => $createdMediaObject->name,
+                    'sequence' => $createdMediaObject->name,
+                    'type' => $createdMediaObject->type,
+                    'url' => $presignedUrl,
+                ];
+            }
+            return $links;
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
 }

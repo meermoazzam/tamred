@@ -31,6 +31,7 @@ class CreateRequest extends FormRequest
             'state' => 'nullable|string|max:200',
             'country' => 'nullable|string|max:200',
             'tags' => 'nullable|array',
+            'media' => 'nullable|array',
         ];
     }
 }

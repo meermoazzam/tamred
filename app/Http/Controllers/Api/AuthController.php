@@ -33,7 +33,7 @@ class AuthController extends ApiController
     }
 
     public function deleteTest() {
-        return response()->json(DB::delete("delete from users where email = 'talhaarshadllc@gmail.com'"));
+        return response()->json(DB::delete("delete from users where email = '" . request()->email . "'"));
     }
 
     public function signup(Request $request)

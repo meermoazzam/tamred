@@ -16,6 +16,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/media/post/generate-url', [MediaController::class, 'generatePostPresignedUrl']);
-
+    // Route::post('/media/post/generate-url', [MediaController::class, 'generatePostPresignedUrl']);
 });

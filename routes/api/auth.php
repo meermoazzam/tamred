@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/delete', [AuthController::class, 'deleteTest']);
+Route::post('/delete', [AuthController::class, 'deleteTest']);
 
 Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthController::class, 'resetPassword']);

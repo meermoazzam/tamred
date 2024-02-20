@@ -19,6 +19,7 @@ class Media extends Model
         'type',
         'size',
         'key',
+        'sequence',
     ];
 
     public function getKeyAttribute($value)

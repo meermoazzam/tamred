@@ -14,14 +14,22 @@ use Illuminate\Http\Request;
 
 class PostService extends Service {
 
+
     private $perPage, $orderBy, $orderIn;
+    /**
+	* @var mediaService
+	*/
+	private $mediaService;
+
 	/**
-    * PostService Constructor
+     * PostService Constructor
+     * @param MediaService
     */
-    public function __construct() {
+    public function __construct(MediaService $mediaService) {
         $this->perPage = request()->per_page ?? 10;
         $this->orderBy = request()->order_by ?? 'id';
         $this->orderIn = request()->order_in ?? 'asc';
+        $this->mediaService = $mediaService;
     }
 
     public function create(int $userId, Request $data): JsonResponse
@@ -41,7 +49,14 @@ class PostService extends Service {
                 'tags' => $data['tags'] ?? [],
             ]);
 
-            return $this->jsonSuccess(201, 'Post created successfully!', ['post' => new PostResource($post)]);
+            $preSignedMediaUrls = $this->mediaService->createBulkPresignedUrls($userId, $post->id, $data['media']);
+
+            return $this->jsonSuccess(201, 'Post created successfully!',
+                [
+                    'post' => new PostResource($post),
+                    'preSignedMediaUrls' => $preSignedMediaUrls,
+                ]
+            );
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

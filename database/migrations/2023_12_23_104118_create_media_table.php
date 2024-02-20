@@ -17,9 +17,10 @@ return new class extends Migration
             $table->unsignedBigInteger('mediable_id');
             $table->string('mediable_type', 100);
             $table->string('name');
-            $table->string('type', 50);
-            $table->integer('size');
+            $table->string('type', 50)->nullable();
+            $table->integer('size')->nullable();
             $table->string('key');
+            $table->integer('sequence');
             $table->timestamps();
         });
     }
