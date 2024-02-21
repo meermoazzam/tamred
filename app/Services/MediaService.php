@@ -134,4 +134,14 @@ class MediaService extends Service {
             return $this->jsonException($e->getMessage());
         }
     }
+
+    public function deleteMedia(int $userId): JsonResponse
+    {
+        try{
+            Media::where('user_id', $userId)->whereIn('id', request()->media_ids)->update(['status' => 'deleted']);
+            return $this->jsonSuccess(204, 'Album Deleted successfully');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
 }

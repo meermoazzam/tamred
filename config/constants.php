@@ -26,6 +26,13 @@ return [
             'deleted',
         ]
     ],
+    'media' => [
+        'status' => [
+            'active',
+            'archived',
+            'deleted',
+        ]
+    ],
     'comments' => [
         'status' => [
             'published',

@@ -21,6 +21,7 @@ class Media extends Model
         'media_key',
         'thumbnail_key',
         'sequence',
+        'status',
     ];
 
     public function getMediaKeyAttribute($value)

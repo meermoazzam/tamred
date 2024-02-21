@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\ReactionResource;
 use App\Models\Album;
+use App\Models\Media;
 use App\Models\Reaction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -147,6 +148,12 @@ class PostService extends Service {
         try{
             $is_deleted = Post::where('id', $id)->where('user_id', $userId)
                 ->update(['status' => 'deleted']);
+
+            $isMediaDeleted = Media::where('user_id', $userId)
+                ->where('mediable_id', $id)
+                ->where('mediable_type', (new Post)->getMorphClass())
+                ->update(['status' => 'deleted']);
+
             if( $is_deleted ) {
                 return $this->jsonSuccess(204, 'Post Deleted successfully');
             } else {

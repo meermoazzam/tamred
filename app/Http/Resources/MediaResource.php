@@ -21,7 +21,6 @@ class MediaResource extends JsonResource
             'size' => $this->size,
             'media_url' => $this->media_key,
             'thumbnail_url' => $this->thumbnail_key,
-            'sequence' => $this->sequence,
             'created_at' => $this->created_at,
         ];
     }

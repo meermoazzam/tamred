@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('media_key');
             $table->string('thumbnail_key');
             $table->integer('sequence');
+            $table->string('status', 50)->default('active');
             $table->timestamps();
         });
     }
