@@ -19,7 +19,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('type', 50)->nullable();
             $table->integer('size')->nullable();
-            $table->string('key');
+            $table->string('media_key');
+            $table->string('thumbnail_key');
             $table->integer('sequence');
             $table->timestamps();
         });

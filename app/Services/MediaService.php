@@ -89,16 +89,24 @@ class MediaService extends Service {
 
                 $fileExtension = pathinfo($media[$i]['name'], PATHINFO_EXTENSION);
 
-                $slug = 'tamred/' . $userId . '/' . $postId . '/' . strtotime(now()) . '-' . Str::random(10) . '.' . $fileExtension;
+                $mediaSlug = 'tamred/media/' . $userId . '/' . $postId . '/' . strtotime(now()) . '-' . Str::random(10) . '.' . $fileExtension;
+                $thumbnailSlug = 'tamred/thumbnails/' . $userId . '/' . $postId . '/' . strtotime(now()) . '-' . Str::random(10) . '.' . $fileExtension;
 
                 // Generate a pre-signed URL for the S3 object
                 $cmd = $s3->getCommand('PutObject', [
                     'Bucket' => $bucket,
-                    'Key' => $slug,
+                    'Key' => $mediaSlug,
                     'ACL' => 'public-read',
                 ]);
+                $presignedMediaUrl = urldecode((string)$s3->createPresignedRequest($cmd, '+20 minutes')->getUri());
 
-                $presignedUrl = urldecode((string)$s3->createPresignedRequest($cmd, '+20 minutes')->getUri());
+                // Generate a pre-signed URL for the S3 object
+                $cmd = $s3->getCommand('PutObject', [
+                    'Bucket' => $bucket,
+                    'Key' => $thumbnailSlug,
+                    'ACL' => 'public-read',
+                ]);
+                $presignedThumbnailUrl = urldecode((string)$s3->createPresignedRequest($cmd, '+20 minutes')->getUri());
 
                 // when success save the data
                 $createdMediaObject = Media::create([
@@ -108,7 +116,8 @@ class MediaService extends Service {
                     "size" => $media[$i]['size'],
                     "mediable_id" => $postId,
                     "mediable_type" => (new Post)->getMorphClass(),
-                    "key" => $slug,
+                    "media_key" => $mediaSlug,
+                    "thumbnail_key" => $thumbnailSlug,
                     "sequence" => $i + 1,
                 ]);
 
@@ -116,7 +125,8 @@ class MediaService extends Service {
                     'name' => $createdMediaObject->name,
                     'sequence' => $createdMediaObject->name,
                     'type' => $createdMediaObject->type,
-                    'url' => $presignedUrl,
+                    'mediaUrl' => $presignedMediaUrl,
+                    'thumbnailUrl' => $presignedThumbnailUrl,
                 ];
             }
             return $links;

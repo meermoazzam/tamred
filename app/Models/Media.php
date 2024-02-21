@@ -18,11 +18,17 @@ class Media extends Model
         'name',
         'type',
         'size',
-        'key',
+        'media_key',
+        'thumbnail_key',
         'sequence',
     ];
 
-    public function getKeyAttribute($value)
+    public function getMediaKeyAttribute($value)
+    {
+        return env("AWS_BUCKET") . '.s3.' . env("AWS_DEFAULT_REGION") . '.amazonaws.com/' . $value;
+    }
+
+    public function getThumbnailKeyAttribute($value)
     {
         return env("AWS_BUCKET") . '.s3.' . env("AWS_DEFAULT_REGION") . '.amazonaws.com/' . $value;
     }
