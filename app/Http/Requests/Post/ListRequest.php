@@ -29,6 +29,7 @@ class ListRequest extends FormRequest
             'state' => 'nullable|string|max:200',
             'country' => 'nullable|string|max:200',
             'tags' => 'nullable|string|max:200',
+            'categories' => 'nullable|array',
         ];
     }
 }

@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('country', 200)->nullable();
             $table->json('tags')->nullable();
             $table->json('tagged_users')->nullable();
+            $table->boolean('allow_comments')->default(true);
             $table->timestamps();
         });
     }

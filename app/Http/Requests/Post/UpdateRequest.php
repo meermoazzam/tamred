@@ -31,6 +31,7 @@ class UpdateRequest extends FormRequest
             'state' => 'sometimes|nullable|string|max:200',
             'country' => 'sometimes|nullable|string|max:200',
             'tags' => 'sometimes|nullable|array',
+            'allow_comments' => 'sometimes|nullable|boolean',
         ];
     }
 }

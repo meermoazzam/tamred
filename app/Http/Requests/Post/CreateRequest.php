@@ -32,6 +32,7 @@ class CreateRequest extends FormRequest
             'country' => 'nullable|string|max:200',
             'tags' => 'nullable|array',
             'media' => 'nullable|array',
+            'allow_comments' => 'boolean',
         ];
     }
 }

@@ -48,6 +48,7 @@ class PostService extends Service {
                 'state' => $data['state'],
                 'country' => $data['country'],
                 'tags' => $data['tags'] ?? [],
+                'allow_comments' => $data['allow_comments'] === false ? false : true,
             ]);
 
             $preSignedMediaUrls = $this->mediaService->createBulkPresignedUrls($userId, $post->id, $data['media']);
@@ -117,8 +118,14 @@ class PostService extends Service {
             ->when(request()->tags, function (Builder $query) {
                 $query->whereLike('tags', '"' . request()->tags . '"');
             })
+            ->when(request()->categories, function (Builder $query) {
+                $query->whereHas('categories', function (Builder $query) {
+                    $query->whereIn($query->qualifyColumn('id'), request()->categories)
+                        ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
+                });
+            })
             ->status('published')
-            ->with('user', 'media')
+            ->with('user', 'media', 'categories')
             ->orderBy($this->orderBy, $this->orderIn);
 
             return $this->jsonSuccess(200, 'Success', ['posts' => PostResource::collection($posts->paginate($this->perPage))->resource]);

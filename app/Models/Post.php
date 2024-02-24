@@ -32,6 +32,7 @@ class Post extends Model
         'country',
         'tags',
         'tagged_users',
+        'allow_comments',
     ];
 
     protected function tags(): Attribute

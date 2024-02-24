@@ -25,7 +25,7 @@ class CommentService extends Service {
     public function create(int $userId, Request $data): JsonResponse
     {
         try{
-            $post = Post::where('id', $data['post_id'])->status('published')->first();
+            $post = Post::where('id', $data['post_id'])->where('allow_comments', true)->status('published')->first();
             $parentComment = Comment::where('post_id', $data['post_id'])
                 ->where('id', $data['parent_id'])->status('published')->first();
 
@@ -41,7 +41,7 @@ class CommentService extends Service {
                 $updatePostCommentCount = Post::where('id', $data['post_id'])->increment('total_comments');
                 return $this->jsonSuccess(201, 'Comment created successfully!', ['comment' => new CommentResource($comment)]);
             } else {
-                return $this->jsonError(403, 'Failed to create comment, either post or parent comment not found.');
+                return $this->jsonError(403, 'Failed to create comment, either post doesn\'t allow or parent comment not found.');
             }
 
         } catch (Exception $e) {

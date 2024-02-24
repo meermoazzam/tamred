@@ -29,6 +29,8 @@ class PostResource extends JsonResource
             'tags' => $this->tags,
             'total_likes' => $this->total_likes,
             'total_comments' => $this->total_comments,
+            'allow_comments' => $this->allow_comments,
+            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
