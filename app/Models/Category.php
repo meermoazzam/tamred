@@ -20,7 +20,7 @@ class Category extends Model
 
     public function getIconAttribute($value)
     {
-        return config('app.url'). $value;
+        return config('app.url') . '/' . $value;
     }
 
     public function subCategories(): HasMany

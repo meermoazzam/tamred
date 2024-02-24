@@ -69,7 +69,7 @@ class UserService extends Service {
         try{
             $user = User::where('id', $userId)->first();
             if( $user ) {
-                $user->userCategories()->sync(request()->category_ids);
+                $user->categories()->sync(request()->category_ids);
                 return $this->jsonSuccess(200, 'Categories saved!');
             } else {
                 return $this->jsonError(403, 'No user found to attach category');
