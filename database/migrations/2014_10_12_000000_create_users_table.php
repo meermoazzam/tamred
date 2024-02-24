@@ -16,6 +16,7 @@ return new class extends Migration
             $table->boolean('is_admin')->default(0);
             $table->string('first_name');
             $table->string('last_name');
+            $table->string('bio')->nullable();
             $table->string('nickname')->nullable();
             $table->string('username')->unique();
             $table->string('email')->unique();

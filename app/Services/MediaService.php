@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\CommentResource;
 use App\Models\Media;
 use App\Models\Post;
+use App\Models\User;
 use Aws\AwsClient;
 use Aws\Credentials\Credentials;
 use Aws\S3\S3Client;
@@ -140,6 +141,51 @@ class MediaService extends Service {
         try{
             Media::where('user_id', $userId)->whereIn('id', request()->media_ids)->update(['status' => 'deleted']);
             return $this->jsonSuccess(204, 'Album Deleted successfully');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function updateProfilePicture(int $userId, $media): JsonResponse
+    {
+        try{
+            $s3 = new S3Client([
+                'region' => env('AWS_DEFAULT_REGION'),
+                'version' => 'latest',
+            ]);
+            $bucket = env("AWS_BUCKET");
+
+            $fileExtension = pathinfo($media['name'], PATHINFO_EXTENSION);
+
+
+            $mediaSlug = 'tamred/profile/pictures/' . $userId . '/' . strtotime(now()) . '-' . Str::random(10) . '.' . $fileExtension;
+            $thumbnailSlug = 'tamred/profile/thumbnails/' . $userId . '/' . strtotime(now()) . '-' . Str::random(10) . '.' . $fileExtension;
+
+            // Generate a pre-signed URL for the S3 object
+            $cmd = $s3->getCommand('PutObject', [
+                'Bucket' => $bucket,
+                'Key' => $mediaSlug,
+                'ACL' => 'public-read',
+            ]);
+            $presignedMediaUrl = urldecode((string)$s3->createPresignedRequest($cmd, '+20 minutes')->getUri());
+
+            // Generate a pre-signed URL for the S3 object
+            $cmd = $s3->getCommand('PutObject', [
+                'Bucket' => $bucket,
+                'Key' => $thumbnailSlug,
+                'ACL' => 'public-read',
+            ]);
+            $presignedThumbnailUrl = urldecode((string)$s3->createPresignedRequest($cmd, '+20 minutes')->getUri());
+
+            User::where('id', $userId)->update([
+                'image' => $mediaSlug,
+                'thumbnail' => $thumbnailSlug,
+            ]);
+
+            return $this->jsonSuccess(200, 'Updated Successfully', [
+                'presignedMediaUrl' => $presignedMediaUrl,
+                'presignedThumbnailUrl' => $presignedThumbnailUrl,
+            ]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'first_name',
         'last_name',
+        'bio',
         'nickname',
         'username',
         'email',
@@ -83,5 +84,23 @@ class User extends Authenticatable implements MustVerifyEmail
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, (new UserCategory())->getTable());
+    }
+
+    public function getImageAttribute($value)
+    {
+        if($value) {
+            return env("AWS_BUCKET") . '.s3.' . env("AWS_DEFAULT_REGION") . '.amazonaws.com/' . $value;
+        } else {
+            return $value;
+        }
+    }
+
+    public function getThumbnailAttribute($value)
+    {
+        if($value) {
+            return env("AWS_BUCKET") . '.s3.' . env("AWS_DEFAULT_REGION") . '.amazonaws.com/' . $value;
+        } else {
+            return $value;
+        }
     }
 }

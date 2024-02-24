@@ -176,4 +176,15 @@ class UserService extends Service {
         }
     }
 
+    public function update(int $userId, array $data) {
+        try{
+            $isUpdated = User::where('id', $userId)
+                ->update($data);
+
+            return $this->jsonSuccess(200, 'Updated Successfully', ['user' => new PersonalResource(User::find($userId))]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
 }

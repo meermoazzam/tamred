@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\User\ActionRequest;
 use App\Http\Requests\User\AttachCategoryRequest;
+use App\Http\Requests\User\ProfilePictureRequest;
+use App\Http\Requests\User\UpdateRequest;
+use App\Services\MediaService;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 
@@ -11,14 +14,17 @@ class UserController extends ApiController
 {
     /**
 	* @var userService
+	* @var mediaService
 	*/
-	private $userService;
+	private $userService, $mediaService;
 
 	/**
     * @param UserService
+    * @param MediaService
     */
-    public function __construct(UserService $userService) {
+    public function __construct(UserService $userService, MediaService $mediaService) {
     	$this->userService = $userService;
+    	$this->mediaService = $mediaService;
     }
 
     public function whoAmI(): JsonResponse
@@ -69,5 +75,15 @@ class UserController extends ApiController
     public function followingList($id): JsonResponse
     {
         return $this->userService->followingList($id);
+    }
+
+    public function update(UpdateRequest $request): JsonResponse
+    {
+        return $this->userService->update(auth()->id(), $request->validated());
+    }
+
+    public function updateProfilePicture(ProfilePictureRequest $request): JsonResponse
+    {
+        return $this->mediaService->updateProfilePicture(auth()->id(), $request);
     }
 }

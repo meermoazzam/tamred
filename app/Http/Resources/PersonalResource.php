@@ -18,6 +18,7 @@ class PersonalResource extends JsonResource
             'id' => $this->id,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
+            'bio' => $this->bio,
             'nickname' => $this->nickname,
             'username' => $this->username,
             'email' => $this->email,
@@ -30,6 +31,8 @@ class PersonalResource extends JsonResource
             'city' => $this->city,
             'state' => $this->state,
             'country' => $this->country,
+            'image' => $this->image,
+            'thumbnail' => $this->thumbnail,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
         ];
     }

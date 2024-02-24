@@ -42,7 +42,8 @@ class AuthController extends ApiController
             $validation = Validator::make($request->all(), [
                 'first_name' => 'required|max:255',
                 'last_name' => 'required|max:255',
-                'nickname' => 'max:255',
+                'bio' => 'string|max:2000',
+                'nickname' => 'string|max:255',
                 'email' => 'required|email|unique:users,email|max:255',
                 'username' => 'required|unique:users,username|max:255',
                 'password' => 'confirmed|required',
@@ -71,6 +72,7 @@ class AuthController extends ApiController
             $user = User::create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
+                'bio' => $request->bio,
                 'nickname' => $request->nickname,
                 'username' => $request->username,
                 'email' => $request->email,
