@@ -87,7 +87,7 @@ class AlbumService extends Service {
             $is_deleted = Album::where('id', $id)->where('user_id', $userId)->statusNot(['default'])
                 ->update(['status' => 'deleted']);
             if( $is_deleted ) {
-                Post::where('album_id', $id)->update(['status' => 'deleted']);
+                Post::where('album_id', $id)->update(['album_id' => null]);
 
                 return $this->jsonSuccess(204, 'Album Deleted successfully');
             } else {
