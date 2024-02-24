@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Resources\FollowResource;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PersonalResource;
@@ -148,4 +149,31 @@ class UserService extends Service {
             return $this->jsonException($e->getMessage());
         }
     }
+
+    public function followerList($userId): JsonResponse
+    {
+        try{
+            $followers = FollowUser::query();
+            $followers->where('followed_id', $userId)
+            ->with('userDetailByUserId');
+
+            return $this->jsonSuccess(200, 'Success', ['followers' => FollowResource::collection($followers->paginate($this->perPage))->resource]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function followingList($userId): JsonResponse
+    {
+        try{
+            $followings = FollowUser::query();
+            $followings->where('user_id', $userId)
+            ->with('userDetailByFollowedId');
+
+            return $this->jsonSuccess(200, 'Success', ['followings' => FollowResource::collection($followings->paginate($this->perPage))->resource]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
 }

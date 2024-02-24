@@ -23,4 +23,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/users/unfollow', [UserController::class, 'unfollow']);
     Route::post('/users/block', [UserController::class, 'block']);
     Route::post('/users/unblock', [UserController::class, 'unblock']);
+
+    Route::get('/users/{id}/followers', [UserController::class, 'followerList']);
+    Route::get('/users/{id}/following', [UserController::class, 'followingList']);
 });

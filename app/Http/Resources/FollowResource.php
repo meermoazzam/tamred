@@ -14,6 +14,11 @@ class FollowResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'follower' => new UserShortResource($this->whenLoaded('userDetailByUserId')),
+            'following' => new UserShortResource($this->whenLoaded('userDetailByFollowedId')),
+            'created_at' => $this->created_at,
+        ];
     }
 }

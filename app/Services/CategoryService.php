@@ -23,7 +23,8 @@ class CategoryService extends Service {
     public function get(int $id): JsonResponse
     {
         try{
-            $category = Category::where('id', $id)->first();
+            $category = Category::where('id', $id)
+            ->with('subCategories')->first();
             return $this->jsonSuccess(200, 'Success', ['category' => $category ? new CategoryResource($category) : []]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -35,6 +36,7 @@ class CategoryService extends Service {
         try{
             $categories = Category::query();
             $categories->whereLike('name', request()->name)
+            ->with('subCategories')
             ->orderBy($this->orderBy, $this->orderIn);
 
             return $this->jsonSuccess(200, 'Success', ['categories' => CategoryResource::collection($categories->paginate($this->perPage))->resource]);

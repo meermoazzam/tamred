@@ -60,4 +60,14 @@ class UserController extends ApiController
     {
         return $this->userService->unblock($request['user_id']);
     }
+
+    public function followerList($id): JsonResponse
+    {
+        return $this->userService->followerList($id);
+    }
+
+    public function followingList($id): JsonResponse
+    {
+        return $this->userService->followingList($id);
+    }
 }
