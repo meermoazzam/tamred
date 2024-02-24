@@ -7,9 +7,11 @@ use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\ReactionResource;
+use App\Http\Resources\UserShortResource;
 use App\Models\Album;
 use App\Models\Media;
 use App\Models\Reaction;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -47,7 +49,8 @@ class PostService extends Service {
                 'city' => $data['city'],
                 'state' => $data['state'],
                 'country' => $data['country'],
-                'tags' => $data['tags'] ?? [],
+                'tags' => $data['tags'] ? array_unique($data['tags']) : [],
+                'tagged_users' => $data['tagged_users'] ? array_unique($data['tagged_users']) : [],
                 'allow_comments' => $data['allow_comments'] === false ? false : true,
             ]);
 
@@ -87,7 +90,14 @@ class PostService extends Service {
     {
         try{
             $post = Post::where('id', $id)->with('user', 'media')->status('published')->first();
-            return $this->jsonSuccess(200, 'Success', ['post' => $post ? new PostResource($post) : []]);
+
+            $taggedUsersData = $post?->tagged_users != null ? $post->tagged_users : [];
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData))->get();
+
+            return $this->jsonSuccess(200, 'Success', [
+                'post' => $post ? new PostResource($post) : [],
+                'tagged_users_data' => $taggedUsersData ? UserShortResource::collection($taggedUsersData) : []
+            ]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
@@ -128,7 +138,18 @@ class PostService extends Service {
             ->with('user', 'media', 'categories')
             ->orderBy($this->orderBy, $this->orderIn);
 
-            return $this->jsonSuccess(200, 'Success', ['posts' => PostResource::collection($posts->paginate($this->perPage))->resource]);
+            $posts = $posts->paginate($this->perPage);
+
+            $taggedUsersData = [];
+            foreach($posts as $post) {
+                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
+            }
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
+            ]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

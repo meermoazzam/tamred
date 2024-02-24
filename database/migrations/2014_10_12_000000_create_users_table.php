@@ -29,6 +29,9 @@ return new class extends Migration
             $table->string('city', 200)->nullable();
             $table->string('state', 200)->nullable();
             $table->string('country', 200)->nullable();
+            $table->string('image')->nullable();
+            $table->string('thumbnail')->nullable();
+            $table->string('cover')->nullable();
             $table->enum('status', ['active', 'blocked'])->default('active');
             $table->rememberToken();
             $table->timestamps();

@@ -43,6 +43,14 @@ class Post extends Model
         );
     }
 
+    protected function taggedUsers(): Attribute
+    {
+        return Attribute::make(
+            get: fn (string|null $value) => ($value) ? json_decode($value, true) : [],
+            set: fn (array $value) => json_encode($value),
+        );
+    }
+
     public function scopeStatus(Builder $query, mixed $status): Builder
     {
         $status = is_array($status) ? $status : [$status];
