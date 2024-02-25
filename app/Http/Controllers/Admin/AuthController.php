@@ -54,14 +54,19 @@ class AuthController extends Controller
                 ]);
             }
 
-            if(!Auth::attempt($request->only(['email', 'password']))){
+            $user = User::where('email', $request->email)->where('is_admin', 1)->first();
+            if ($user) {
+                if(!Auth::attempt($request->only(['email', 'password'], $request->remember ? true : false))){
+                    return back()->with([
+                        'error' => 'Incorrect Email or Password',
+                    ]);
+                } else {
+                    return redirect()->route('dashboard')->with(['success' => 'Logged in successfully!']);
+                }
+            } else {
                 return back()->with([
                     'error' => 'Incorrect Email or Password',
                 ]);
-            } else {
-                $user = User::where('email', $request->email)->first();
-                Auth::login($user, $request->remember ? true : false);
-                return redirect()->route('dashboard')->with(['success' => 'Logged in successfully!']);
             }
 
         } catch (Exception $exception) {
