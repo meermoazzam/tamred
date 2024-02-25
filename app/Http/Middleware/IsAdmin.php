@@ -16,7 +16,11 @@ class IsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if( true != auth()->user()->is_admin ) {
-            return response()->json(['message' => "Not Allowed"], 403);
+            if($request->expectsJson()) {
+                return response()->json(['message' => "Not Allowed"], 403);
+            } else {
+                return back()->with(['error' => 'Not Allowed']);
+            }
         }
 
         return $next($request);
