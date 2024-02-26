@@ -18,6 +18,8 @@ class FollowResource extends JsonResource
             'id' => $this->id,
             'follower' => new UserShortResource($this->whenLoaded('userDetailByUserId')),
             'following' => new UserShortResource($this->whenLoaded('userDetailByFollowedId')),
+            'in_my_following' => $this->whenHas('inMyFollowing'),
+            'is_my_follower' => $this->whenHas('isMyFollower'),
             'created_at' => $this->created_at,
         ];
     }

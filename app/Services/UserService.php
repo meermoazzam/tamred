@@ -38,6 +38,10 @@ class UserService extends Service {
     {
         try{
             $user = User::withCount(['post', 'follower', 'following'])->find($id);
+
+            $user->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $id)->exists();
+            $user->isMyFollower = FollowUser::where('user_id', $id)->where('followed_id', auth()->id())->exists();
+
             return $this->jsonSuccess(200, 'Success', ['user' => $user ? new UserResource($user) : []]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -58,7 +62,17 @@ class UserService extends Service {
             ->withCount(['post', 'follower', 'following'])
             ->orderBy($this->orderBy, $this->orderIn);
 
-            return $this->jsonSuccess(200, 'Success', ['users' => UserResource::collection($users->paginate($this->perPage))->resource]);
+            $users = $users->paginate($this->perPage);
+
+            $updatedUsers = $users->getCollection()->map(function($user) {
+                $user->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $user->id)->exists();
+                $user->isMyFollower = FollowUser::where('user_id', $user->id)->where('followed_id', auth()->id())->exists();
+                return $user;
+            });
+
+            $users->setCollection($updatedUsers);
+
+            return $this->jsonSuccess(200, 'Success', ['users' => UserResource::collection($users)->resource]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
@@ -157,7 +171,17 @@ class UserService extends Service {
             $followers->where('followed_id', $userId)
             ->with('userDetailByUserId');
 
-            return $this->jsonSuccess(200, 'Success', ['followers' => FollowResource::collection($followers->paginate($this->perPage))->resource]);
+            $followers = $followers->paginate($this->perPage);
+
+            $updatedFollowers = $followers->getCollection()->map(function($follower) {
+                $follower->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $follower->user_id)->exists();
+                $follower->isMyFollower = FollowUser::where('user_id', $follower->user_id)->where('followed_id', auth()->id())->exists();
+                return $follower;
+            });
+
+            $followers->setCollection($updatedFollowers);
+
+            return $this->jsonSuccess(200, 'Success', ['followers' => FollowResource::collection($followers)->resource]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
@@ -170,7 +194,17 @@ class UserService extends Service {
             $followings->where('user_id', $userId)
             ->with('userDetailByFollowedId');
 
-            return $this->jsonSuccess(200, 'Success', ['followings' => FollowResource::collection($followings->paginate($this->perPage))->resource]);
+            $followings = $followings->paginate($this->perPage);
+
+            $updatedFollowers = $followings->getCollection()->map(function($following) {
+                $following->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $following->followed_id)->exists();
+                $following->isMyFollower = FollowUser::where('user_id', $following->followed_id)->where('followed_id', auth()->id())->exists();
+                return $following;
+            });
+
+            $followings->setCollection($updatedFollowers);
+
+            return $this->jsonSuccess(200, 'Success', ['followings' => FollowResource::collection($followings)->resource]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

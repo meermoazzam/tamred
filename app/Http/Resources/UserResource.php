@@ -30,6 +30,8 @@ class UserResource extends JsonResource
             'post_count' => $this->post_count ?? 0,
             'follower_count' => $this->follower_count ?? 0,
             'following_count' => $this->following_count ?? 0,
+            'in_my_following' => $this->whenHas('inMyFollowing'),
+            'is_my_follower' => $this->whenHas('isMyFollower'),
             'created_at' => $this->created_at,
         ];
     }
