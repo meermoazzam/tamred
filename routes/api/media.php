@@ -18,4 +18,4 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/media', [MediaController::class, 'deleteMedia']);
     // Route::post('/media/post/generate-url', [MediaController::class, 'generatePostPresignedUrl']);
-});
+    });

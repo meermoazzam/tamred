@@ -20,6 +20,7 @@ class CommentResource extends JsonResource
             'user' => new UserShortResource($this->whenLoaded('user')),
             'parent_id' => $this->parent_id,
             'description' => $this->description,
+            'status' => $this->status,
             'children_count' => $this->children_count ?? 0,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

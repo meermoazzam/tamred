@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Posts
+    Categories
 @endsection
 
 
@@ -40,7 +40,12 @@
         th {
             text-align: center !important;
         }
-
+        .fa-trash-alt {
+            color: red;
+        }
+        .fa-edit {
+            color: rgb(0, 145, 255);
+        }
         table td img {
             max-width: 40px;
         }

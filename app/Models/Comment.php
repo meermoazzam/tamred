@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Comment extends Model
 {
@@ -47,5 +48,10 @@ class Comment extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Comment::class, 'parent_id', 'id');
+    }
+
+    public function parent(): HasOne
+    {
+        return $this->hasOne(Comment::class, 'id', 'parent_id');
     }
 }

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Posts
+    Comments
 @endsection
 
 
@@ -40,15 +40,12 @@
         th {
             text-align: center !important;
         }
-
         .fa-trash-alt {
             color: red;
         }
-
         .fa-edit {
             color: rgb(0, 145, 255);
         }
-
         table td img {
             max-width: 40px;
         }
@@ -65,55 +62,51 @@
 
         <div class="col-md-2"></div>
         <div id="content" class="col-md-10 p-5"><i class="fa-solid fa-house">
-                <h1 style="font-style: normal">Posts<h1>
+                <h1 style="font-style: normal">Comments<h1>
                         <br>
                         <table id="datatable" class="table table-striped table-bordered dt-responsive nowrap"
                             style="width: 100%">
                             <thead class="">
                                 <tr>
                                     <th>ID</th>
-                                    <th>Title</th>
-                                    {{-- <th>Description</th> --}}
+                                    <th>Description</th>
                                     <th>Status</th>
-                                    {{-- <th>Likes</th> --}}
-                                    <th>Comments</th>
-                                    <th>Media</th>
-                                    <th>Location</th>
+                                    <th>Post</th>
                                     <th>User</th>
+                                    <th>Child Comments</th>
                                     <th>Created At</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($posts as $post)
+                                @foreach ($comments as $comment)
                                     <tr>
-                                        <td>{{ $post['id'] }}</td>
-                                        <td title="{{ $post['title'] }}">{{ $post['title'] }}</td>
-                                        {{-- <td title="{{ $post['description'] }}">{{ $post['description'] }}</td> --}}
-                                        <td title="{{ $post['status'] }}">
+                                        <td title="{{ $comment['id'] }}">{{ $comment['id'] }}</td>
+                                        <td title="{{ $comment['description'] }}">{{ $comment['description'] }}</td>
+                                        <td title="{{ $comment['status'] }}">
                                             @php
-                                                $badge = $post['status'] == 'published' ? 'success' : ($post['status'] == 'deleted' ? 'danger' : 'warning');
+                                                $badge = ($comment['status']=='published') ? 'primary' : ($comment['status']=='deleted' ? 'danger' : 'warning');
                                             @endphp
-                                            <span class="badge bg-{{ $badge }} ">{{ $post['status'] }}</span>
+                                            <span class="badge bg-{{ $badge }} ">{{ $comment['status'] }}</span>
                                         </td>
-                                        {{-- <td>{{ $post['total_likes'] }}</td> --}}
-                                        <td>{{ $post['total_comments'] }}</td>
-                                        <td>{{ count($post['media']) }}</td>
-                                        <td title="{{ $post['location'] }}">{{ $post['location'] }}</td>
+
+                                        <td>{{ $comment['post_id'] }}</td>
                                         <td
-                                            title="{{ $post['user']['first_name'] . ' ' . $post['user']['last_name'] . ' (' . $post['user']['email'] . ')' }}">
+                                            title="{{ $comment['user']['first_name'] . ' ' . $comment['user']['last_name'] . ' (' . $comment['user']['email'] . ')' }}">
                                             <img
-                                                src="{{ $post['user']['image'] ? 'https://' . $post['user']['image'] : ' ' }}">
-                                            {{ $post['user']['first_name'] . ' ' . $post['user']['last_name'] . '(' . $post['user']['email'] . ')' }}
+                                                src="{{ $comment['user']['image'] ? 'https://' . $comment['user']['image'] : ' ' }}">
+                                            {{ $comment['user']['first_name'] . ' ' . $comment['user']['last_name'] . '(' . $comment['user']['email'] . ')' }}
                                         </td>
-                                        <td>{{ $post['created_at'] }}</td>
+                                        <td>{{ $comment['children_count'] }}</td>
+                                        <td>{{ $comment['created_at'] }}</td>
                                         <td>
                                             <i style="cursor: pointer;" title="Edit"
-                                                onclick="editModalOpener({{ $post['id'] }})" class="fas fa-edit">
+                                                onclick="editModalOpener({{ $comment['id'] }})" class="fas fa-edit">
                                             </i>
                                             <span style="padding: 10px"></span>
                                             <i style="cursor: pointer;" title="Delete"
-                                                onclick="deleteConfirmation({{ $post['id'] }})" class="fas fa-trash-alt">
+                                                onclick="deleteConfirmation({{ $comment['id'] }})"
+                                                class="fas fa-trash-alt">
                                             </i>
                                         </td>
                                     </tr>
@@ -124,7 +117,8 @@
     </div>
 
     @include('admin.delete-modal')
-    @include('admin.posts.edit-modal')
+    @include('admin.comments.edit-modal')
+
 @endsection
 
 
@@ -139,58 +133,44 @@
 
 @push('scripts')
     <script>
-        const update_post_url = "{{ route('admin.posts.update') }}";
-        const delete_post_url = "{{ route('admin.posts.delete') }}";
+        const update_comment_url = "{{ route('admin.comments.update') }}";
+        const delete_comment_url = "{{ route('admin.comments.delete') }}";
 
         $(document).ready(function() {
             $('#datatable').DataTable({});
 
-            posts = @json($posts);
-            key_posts = columnToKey(posts, 'id');
+            comments = @json($comments);
+            key_comments = columnToKey(comments, 'id');
 
         });
 
         function deleteConfirmation(id) {
-            $("#modal-custom-body").html('Post by </b>' + key_posts[id]['user']['first_name'] + '</b>');
-            $("#delete-modal-success-btn").attr('onclick', "deletePost(" + id + ")");
+            $("#modal-custom-body").html('Comment by </b>' + key_comments[id]['user']['first_name'] + '</b>');
+            $("#delete-modal-success-btn").attr('onclick', "deleteComment(" + id + ")");
             openModal("deleteModal");
         }
 
         function editModalOpener(id) {
-            $("#edit-post-modal-success-btn").attr('onclick', "editPost(" + id + ")");
-            $("#edit-title").text(key_posts[id]['title']);
-            $("#edit-description").text(key_posts[id]['description']);
-            $("#edit-location").val(key_posts[id]['location']);
-            $("#edit-city").val(key_posts[id]['city']);
-            $("#edit-latitude").val(key_posts[id]['latitude']);
-            $("#edit-longitude").val(key_posts[id]['longitude']);
-            $("#edit-state").val(key_posts[id]['state']);
-            $("#edit-country").val(key_posts[id]['country']);
-            openModal("editPostModal");
+            $("#edit-comment-modal-success-btn").attr('onclick', "editComment(" + id + ")");
+            $("#edit-description").text(key_comments[id]['description']);
+            openModal("editCommentModal");
         }
 
-        function editPost(id) {
+        function editComment(id) {
             showLoader();
 
             $.ajax({
                 type: "post",
-                url: update_post_url,
+                url: update_comment_url,
                 data: {
                     '_token': $('meta[name="csrf-token"]').attr('content'),
                     'id': id,
-                    'title': $("#edit-title").val(),
-                    'description': $("#edit-description").val(),
-                    'location': $("#edit-location").val(),
-                    'city': $("#edit-city").val(),
-                    'latitude': $("#edit-latitude").val(),
-                    'longitude': $("#edit-longitude").val(),
-                    'state': $("#edit-state").val(),
-                    'country': $("#edit-country").val(),
+                    'description': $('#edit-description').val()
                 },
                 success: function(data) {
                     hideLoader();
                     if (data.status) {
-                        closeModal("editPostModal");
+                        closeModal("editCommentModal");
                         toastr.success(data.message);
                         setTimeout(() => {
                             location.reload();
@@ -199,12 +179,10 @@
                         toastr.error(data['message']);
                     }
                 },
-                error: function(data, XMLHttpRequest) {
+                error: function(XMLHttpRequest) {
                     hideLoader();
-                    console.log(data.responseJSON);
-                    maxlength = "20"
-                    message = 'Error! Failed to update post';
-                    if (data.status < 500) {
+                    message = 'Error! Failed to edit comment';
+                    if(data.status < 500) {
                         message = data.responseJSON.message;
                     }
                     toastr.error(message);
@@ -212,11 +190,11 @@
             }); // end of ajax function
         }
 
-        function deletePost(id) {
+        function deleteComment(id) {
             showLoader();
             $.ajax({
                 type: "post",
-                url: delete_post_url,
+                url: delete_comment_url,
                 data: {
                     '_token': $('meta[name="csrf-token"]').attr('content'),
                     'id': id
@@ -226,7 +204,7 @@
                     console.log(xhr);
                     if (xhr == "nocontent") {
                         closeModal("deleteModal");
-                        toastr.info("Post Deleted Successfully");
+                        toastr.info("Comment Deleted Successfully");
 
                         setTimeout(() => {
                             location.reload();
@@ -237,8 +215,8 @@
                 },
                 error: function(data, XMLHttpRequest) {
                     hideLoader();
-                    message = 'Error! Failed to delete post';
-                    if (data.status < 500) {
+                    message = 'Error! Failed to delete comment';
+                    if(data.status < 500) {
                         message = data.responseJSON.message;
                     }
                     toastr.error(message);

@@ -9,6 +9,7 @@ use App\Http\Resources\PostResource;
 use App\Http\Resources\ReactionResource;
 use App\Http\Resources\UserShortResource;
 use App\Models\Album;
+use App\Models\Comment;
 use App\Models\Media;
 use App\Models\Reaction;
 use App\Models\User;
@@ -180,6 +181,9 @@ class PostService extends Service {
             $isMediaDeleted = Media::where('user_id', $userId)
                 ->where('mediable_id', $id)
                 ->where('mediable_type', (new Post)->getMorphClass())
+                ->update(['status' => 'deleted']);
+
+            $is_deleted = Comment::where('post_id', $id)
                 ->update(['status' => 'deleted']);
 
             if( $is_deleted ) {

@@ -80,15 +80,9 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('admin.categories.get'); }}">
+                <a href="{{ route('admin.comments.get'); }}">
                     {{-- <i class="fas fa-home"></i> --}}
                     Comments
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('admin.categories.get'); }}">
-                    {{-- <i class="fas fa-home"></i> --}}
-                    Conversations
                 </a>
             </li>
         </ul>

@@ -106,7 +106,7 @@
 
                 <div class="container">
                     <label for="email"><b>Email</b></label>
-                    <input type="email" id="email" placeholder="Enter Email" name="email" required>
+                    <input type="email" id="email" placeholder="Enter Email" name="email" required autocomplete="email">
 
                     <label for="password"><b>Password</b></label>
                     <input type="password" id="password" placeholder="Enter Password" name="password" required>

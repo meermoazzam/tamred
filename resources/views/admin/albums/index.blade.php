@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Posts
+    Albums
 @endsection
 
 
@@ -40,7 +40,12 @@
         th {
             text-align: center !important;
         }
-
+        .fa-trash-alt {
+            color: red;
+        }
+        .fa-edit {
+            color: rgb(0, 145, 255);
+        }
         table td img {
             max-width: 40px;
         }
@@ -83,7 +88,8 @@
                                             @php
                                                 $badge = ($album['status']=='default') ? 'success' : ($album['status']=='deleted' ? 'danger' : 'primary');
                                             @endphp
-                                            <span class="badge bg-{{ $badge }} ">{{ $album['status'] }}</span></td>
+                                            <span class="badge bg-{{ $badge }} ">{{ $album['status'] }}</span>
+                                        </td>
                                         <td>{{ $album['posts_count'] }}</td>
                                         <td>{{ $album['user']['id'] }}</td>
                                         <td title="{{ $album['user']['first_name'] . ' ' . $album['user']['last_name'] }}">
@@ -129,10 +135,6 @@
 
         $(document).ready(function() {
             $('#datatable').DataTable({});
-            $('.modalSelect2').select2({
-                placeholder: 'Choose Parent Album',
-                allowClear: true
-            });
 
             albums = @json($albums);
             key_albums = columnToKey(albums, 'id');
@@ -146,13 +148,8 @@
         }
 
         function editModalOpener(id) {
-            $('#edit-parent').find('option').prop('disabled', false);
-            $('#edit-parent').find('option[value="' + id + '"]').prop('disabled', true);
-
             $("#edit-album-modal-success-btn").attr('onclick', "editAlbum(" + id + ")");
             $("#edit-name").val(key_albums[id]['name']);
-            $("#edit-parent").val(key_albums[id]['parent_id']).trigger('change');
-
             openModal("editAlbumModal");
         }
 
@@ -181,7 +178,7 @@
                 },
                 error: function(XMLHttpRequest) {
                     hideLoader();
-                    message = 'Error! Failed to delete album';
+                    message = 'Error! Failed to update album';
                     if(data.status < 500) {
                         message = data.responseJSON.message;
                     }

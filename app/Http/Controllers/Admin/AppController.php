@@ -3,30 +3,37 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Comment\UpdateRequest as CommentUpdateRequest;
+use App\Http\Requests\Post\UpdateRequest;
+use App\Http\Requests\User\UpdateRequest as UserUpdateRequest;
 use App\Http\Resources\AlbumResource;
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\CommentResource;
 use App\Services\AlbumService;
-use App\Http\Resources\PersonalResource;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserResource;
-use App\Mail\EmailVerification;
-use App\Mail\ForgotPassword;
 use App\Models\Album;
+use App\Models\BlockUser;
 use App\Models\Category;
+use App\Models\CategoryPost;
+use App\Models\Chat\Message;
+use App\Models\Chat\Participant;
+use App\Models\Comment;
+use App\Models\FollowUser;
+use App\Models\Media;
 use App\Models\Post;
+use App\Models\Reaction;
 use App\Models\User;
+use App\Models\UserCategory;
 use App\Models\UserMeta;
 use Exception;
 use Illuminate\Http\Request;
-use App\Services\AuthService;
 use App\Services\CategoryService;
+use App\Services\CommentService;
 use App\Services\PostService;
 use App\Services\UserService;
 use App\Traits\ResponseManager;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -34,14 +41,18 @@ class AppController extends Controller
 {
     use ResponseManager;
 
-    public $albumService, $userService, $postService, $categoryService;
+    public $albumService, $userService, $postService, $categoryService, $commentService;
 
-    public function __construct(AlbumService $albumService, UserService $userService, PostService $postService, CategoryService $categoryService)
-    {
+    public function __construct(
+        AlbumService $albumService, UserService $userService,
+        PostService $postService, CategoryService $categoryService,
+        CommentService $commentService
+    ){
         $this->albumService = $albumService;
         $this->userService = $userService;
         $this->categoryService = $categoryService;
         $this->postService = $postService;
+        $this->commentService = $commentService;
     }
 
     public function login(Request $request)
@@ -96,25 +107,67 @@ class AppController extends Controller
         $users = UserResource::collection(User::withCount(['post', 'follower', 'following'])->get());
         return view('admin.users.index')->with(['users' => $users]);
     }
+    public function updateUsers(UserUpdateRequest $request)
+    {
+        try {
+            $isUpdated = User::where('id', $request->id)->update($request->validated());
+            return $this->jsonSuccess(200, 'Successfully updated!');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+    public function deleteUsers(Request $request)
+    {
+        User::where('id', $request->id)->delete();
+        CategoryPost::whereHas('post', function($query) use ($request){
+            $query->where('user_id', $request->id);
+        })->delete();
+        Comment::where('user_id', $request->id)->delete();
+        Comment::whereHas('post', function($query) use ($request){
+            $query->where('user_id', $request->id);
+        })->delete();
+        Post::where('user_id')->delete();
+        UserCategory::where('user_id', $request->id)->delete();
+        Album::where('user_id', $request->id)->delete();
+        Media::where('user_id', $request->id)->delete();
+        Participant::where('user_id', $request->id)->delete();
+        Message::where('user_id', $request->id)->delete();
+        FollowUser::where('user_id', $request->id)->orWhere('followed_id', $request->id)->delete();
+        BlockUser::where('user_id', $request->id)->orWhere('blocked_id', $request->id)->delete();
+        UserMeta::where('user_id', $request->id)->delete();
+        Reaction::where('user_id', $request->id)->delete();
+
+        return $this->jsonSuccess(204, 'Successfully Deleted!');
+    }
 
     public function getPosts()
     {
         $posts = PostResource::collection(Post::with('user', 'media', 'categories')->get());
         return view('admin.posts.index')->with(['posts' => $posts]);
     }
-
-    public function getAlbums()
+    public function updatePosts(UpdateRequest $request)
     {
-        $albums = AlbumResource::collection(Album::with('user')->withCount('posts', 'media')->get());
-        return view('admin.albums.index')->with(['albums' => $albums]);
+        try {
+            $isUpdated = Post::where('id', $request->id)->update($request->validated());
+            return $this->jsonSuccess(200, 'Successfully updated!');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+    public function deletePosts(Request $request)
+    {
+        $post = Post::where('id', $request->id)->first();
+        return $this->postService->delete($post->user_id, $request->id);
     }
 
+
+
+    // categories
     public function getCategories()
     {
         $categories = CategoryResource::collection(Category::withCount('subCategories')->with('parent')->get());
         return view('admin.categories.index')->with(['categories' => $categories]);
     }
-
     public function createCategories(Request $request)
     {
         try {
@@ -147,7 +200,6 @@ class AppController extends Controller
             return $this->jsonException($e->getMessage());
         }
     }
-
     public function updateCategories(Request $request)
     {
         try {
@@ -169,12 +221,18 @@ class AppController extends Controller
             return $this->jsonException($e->getMessage());
         }
     }
-
     public function deleteCategories(Request $request)
     {
         return $this->categoryService->delete($request->id);
     }
 
+
+    // albums
+    public function getAlbums()
+    {
+        $albums = AlbumResource::collection(Album::with('user')->withCount('posts', 'media')->get());
+        return view('admin.albums.index')->with(['albums' => $albums]);
+    }
     public function updateAlbums(Request $request)
     {
         try {
@@ -184,11 +242,32 @@ class AppController extends Controller
             return $this->jsonException($e->getMessage());
         }
     }
-
     public function deleteAlbums(Request $request)
     {
         $album = Album::where('id', $request->id)->first();
         return $this->albumService->delete($album->user_id, $request->id);
+    }
+
+
+    // comments
+    public function getComments()
+    {
+        $comments = CommentResource::collection(Comment::with('user')->withCount('children')->get());
+        return view('admin.comments.index')->with(['comments' => $comments]);
+    }
+    public function updateComments(CommentUpdateRequest $request)
+    {
+        try {
+            Comment::where('id', $request->id)->update($request->validated());
+            return $this->jsonSuccess(200, 'Successfully updated!');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+    public function deleteComments(Request $request)
+    {
+        $comment = Comment::where('id', $request->id)->first();
+        return $this->commentService->delete($comment->user_id, $request->id);
     }
 
 
