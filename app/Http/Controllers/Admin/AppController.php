@@ -126,7 +126,7 @@ class AppController extends Controller
         Comment::whereHas('post', function($query) use ($request){
             $query->where('user_id', $request->id);
         })->delete();
-        Post::where('user_id')->delete();
+        Post::where('user_id', $request->id)->delete();
         UserCategory::where('user_id', $request->id)->delete();
         Album::where('user_id', $request->id)->delete();
         Media::where('user_id', $request->id)->delete();
@@ -142,7 +142,7 @@ class AppController extends Controller
 
     public function getPosts()
     {
-        $posts = PostResource::collection(Post::with('user', 'media', 'categories')->get());
+        $posts = PostResource::collection(Post::with('user', 'media', 'categories')->where('status', 'published')->get());
         return view('admin.posts.index')->with(['posts' => $posts]);
     }
     public function updatePosts(UpdateRequest $request)
