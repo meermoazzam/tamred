@@ -91,7 +91,7 @@ class AlbumService extends Service {
 
                 return $this->jsonSuccess(204, 'Album Deleted successfully');
             } else {
-                return $this->jsonError(403, 'No album found to delete');
+                return $this->jsonError(403, 'No album found to delete, or can\'t delete default album');
             }
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());

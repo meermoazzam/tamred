@@ -42,7 +42,7 @@
 
 </style>
     <nav id="sidebar" class="col-md-2">
-        <div class="img bg-wrap text-center py-4" style="background-image: url(images/bg_1.jpg);">
+        <div class="img bg-wrap text-center py-4">
             <div class="user-logo">
                 {{-- <div class="img" style="background-image: url(images/logo.jpg);"></div> --}}
                 <h3>Tamred</h3>
@@ -56,27 +56,39 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('users.get'); }}">
+                <a href="{{ route('admin.users.get'); }}">
                     {{-- <i class="fas fa-home"></i> --}}
                     Users
                 </a>
             </li>
             <li>
-                <a href="{{ route('posts.get'); }}">
+                <a href="{{ route('admin.posts.get'); }}">
                     {{-- <i class="fas fa-home"></i> --}}
                     Posts
                 </a>
             </li>
             <li>
-                <a href="{{ route('albums.get'); }}">
+                <a href="{{ route('admin.albums.get'); }}">
                     {{-- <i class="fas fa-home"></i> --}}
                     Albums
                 </a>
             </li>
             <li>
-                <a href="{{ route('categories.get'); }}">
+                <a href="{{ route('admin.categories.get'); }}">
                     {{-- <i class="fas fa-home"></i> --}}
                     Categories
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.categories.get'); }}">
+                    {{-- <i class="fas fa-home"></i> --}}
+                    Comments
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.categories.get'); }}">
+                    {{-- <i class="fas fa-home"></i> --}}
+                    Conversations
                 </a>
             </li>
         </ul>
