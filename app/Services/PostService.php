@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Str;
 use Exception;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ use App\Models\Reaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PostService extends Service {
 
@@ -55,12 +57,9 @@ class PostService extends Service {
                 'allow_comments' => $data['allow_comments'] === false ? false : true,
             ]);
 
-            $preSignedMediaUrls = $this->mediaService->createBulkPresignedUrls($userId, $post->id, $data['media']);
-
             return $this->jsonSuccess(201, 'Post created successfully!',
                 [
                     'post' => new PostResource($post),
-                    'preSignedMediaUrls' => $preSignedMediaUrls,
                 ]
             );
         } catch (Exception $e) {
@@ -68,10 +67,10 @@ class PostService extends Service {
         }
     }
 
-    public function publish(int $user_id, int $id): JsonResponse
+    public function publish(int $userId, int $id): JsonResponse
     {
         try{
-            $is_updated = Post::where('user_id', $user_id)->where('id', $id)
+            $is_updated = Post::where('user_id', $userId)->where('id', $id)
             ->statusNot(['archived', 'deleted'])
             ->update([
                 'status' => 'published',
@@ -277,7 +276,6 @@ class PostService extends Service {
         }
     }
 
-
     public function reactList($id): JsonResponse
     {
         try{
@@ -298,6 +296,58 @@ class PostService extends Service {
             } else {
                 return $this->jsonError(403, 'Post not found');
             }
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function uploadMedia($userId, $request): JsonResponse
+    {
+        try{
+            // check if post exist or available to react
+            $post = Post::where('id', $request['post_id'])->where('user_id', $userId)
+                ->statusNot(['deleted'])->first();
+
+            if($post) {
+                $content = $request['file'];
+                $thumb = $request['thumbnail'];
+
+                $content_slug = 'tamred/' . env('APP_ENV', 'dev') . '/media/users/' . $userId . '/post-' . $post->id . '-content-' . Str::random(10) . '.' . $content->getClientOriginalExtension();
+                $thumb_slug = 'tamred/' . env('APP_ENV', 'dev') . '/media/users/' . $userId . '/post-' . $post->id . '-thumbnail-' . Str::random(10) . '.' . $thumb->getClientOriginalExtension();
+
+                // Upload the file to S3
+                Storage::disk(env('STORAGE_DISK', 's3'))->put($thumb_slug, file_get_contents($thumb));
+                Storage::disk(env('STORAGE_DISK', 's3'))->put($content_slug, file_get_contents($content));
+
+                $data = [
+                    "user_id" => $userId,
+                    "type" => $request['type'],
+                    "size" => $request['size'],
+                    "mediable_id" => $post->id,
+                    "mediable_type" => $post->getMorphClass(),
+                    "media_key" => $content_slug,
+                    "thumbnail_key" => $thumb_slug,
+                ];
+
+                Media::create($data);
+
+                return $this->jsonSuccess(200, 'Media Uploaded Successfully!');
+            } else {
+                return $this->jsonError(403, 'Post not found or deleted');
+            }
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function deleteMedia($userId, $request): JsonResponse
+    {
+        try{
+            Media::where('user_id', $userId)
+                ->whereIn('id', $request['media_ids'])
+                ->update(['status' => 'deleted']);
+
+            return $this->jsonSuccess(204, 'Media Deleted Successfully!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

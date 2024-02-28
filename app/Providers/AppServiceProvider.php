@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
             'comment' => 'App\Models\Comment',
             'post' => 'App\Models\Post',
             'user' => 'App\Models\User',
+            'message' => 'App\Models\Chat\Message',
         ]);
     }
 }

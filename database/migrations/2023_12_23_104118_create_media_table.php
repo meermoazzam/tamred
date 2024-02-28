@@ -16,13 +16,12 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('mediable_id');
             $table->string('mediable_type', 100);
-            $table->string('name');
             $table->string('type', 50)->nullable();
             $table->integer('size')->nullable();
-            $table->string('media_key');
-            $table->string('thumbnail_key');
-            $table->integer('sequence');
-            $table->string('status', 50)->default('active');
+            $table->string('media_key')->nullable();
+            $table->string('thumbnail_key')->nullable();
+            $table->integer('sequence')->default(1);
+            $table->string('status', 50)->default('published');
             $table->timestamps();
         });
     }

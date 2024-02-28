@@ -33,10 +33,9 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->string('thumbnail')->nullable();
             $table->string('cover')->nullable();
-            $table->enum('status', ['active', 'blocked'])->default('active');
+            $table->string('status', 50)->default('active');
             $table->rememberToken();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

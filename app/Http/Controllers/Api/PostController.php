@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Post\AttachCategoryRequest;
 use App\Http\Requests\Post\BindAlbumRequest;
 use App\Http\Requests\Post\CreateRequest;
+use App\Http\Requests\Post\DeleteMediaRequest;
 use App\Http\Requests\Post\ListRequest;
 use App\Http\Requests\Post\ReactRequest;
 use App\Http\Requests\Post\UpdateRequest;
+use App\Http\Requests\Post\UploadMediaRequest;
 use App\Services\PostService;
 use Illuminate\Http\JsonResponse;
 
@@ -74,6 +76,16 @@ class PostController extends Controller
     public function reactList($id): JsonResponse
     {
         return $this->postService->reactList($id);
+    }
+
+    public function uploadMedia(UploadMediaRequest $request): JsonResponse
+    {
+        return $this->postService->uploadMedia(auth()->id(), $request->validated());
+    }
+
+    public function deleteMedia(DeleteMediaRequest $request): JsonResponse
+    {
+        return $this->postService->deleteMedia(auth()->id(), $request->validated());
     }
 
 }

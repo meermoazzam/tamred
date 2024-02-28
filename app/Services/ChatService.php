@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Str;
 use App\Http\Resources\Chat\ConversationResource;
 use App\Http\Resources\Chat\MessageResource;
 use App\Http\Resources\Chat\ParticipantResource;
@@ -10,8 +11,10 @@ use Illuminate\Http\JsonResponse;
 use App\Models\Chat\Conversation;
 use App\Models\Chat\Message;
 use App\Models\Chat\Participant;
+use App\Models\Media;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ChatService extends Service {
 
@@ -74,6 +77,7 @@ class ChatService extends Service {
                 $seenAt = $participant->seen_at;
                 if($messageStatus != 2) {
                     $messageCount = Message::where('conversation_id', $conversation->id)
+                        ->statusNot(['deleted'])
                         ->whereNot('user_id', $userId)->where('created_at', '>', $seenAt)->count();
                 } else {
                     $messageCount = 0;
@@ -106,6 +110,7 @@ class ChatService extends Service {
             }
 
             if($conversationCheck && $parentMessageCheck) {
+
                 $message = Message::create([
                     'user_id' => $userId,
                     'conversation_id' => $data['conversation_id'],
@@ -113,10 +118,43 @@ class ChatService extends Service {
                     'description' => $data['description'],
                 ]);
 
-                $message->conversation()->update([]);
-                $message->conversation->participants()->whereNot('user_id', $userId)->update(['message_status' => 1]);
+                if($message) {
 
-                return $this->jsonSuccess(200, 'Message sent successfully!', ['message' => new MessageResource($message)]);
+                    $message->conversation()->update([]);
+                    $message->conversation->participants()->whereNot('user_id', $userId)->update(['message_status' => 1]);
+
+                    $content_slug = $thumb_slug = null;
+                    if($data['file']) {
+                        $content = $data['file'];
+                        $content_slug = 'tamred/' . env('APP_ENV', 'dev') . '/chat/'. $data['conversation_id'] . '/' . $userId . '/' . $message->id . '-content-' . Str::random(10) . '.' . $content->getClientOriginalExtension();
+                        Storage::disk(env('STORAGE_DISK', 's3'))->put($content_slug, file_get_contents($content));
+                    }
+                    if($data['thumbnail']) {
+                        $thumb = $data['thumbnail'];
+                        $thumb_slug = 'tamred/' . env('APP_ENV', 'dev') . '/chat/' . $data['conversation_id'] . '/' . $userId . '/' . $message->id . '-thumbnail-' . Str::random(10) . '.' . $thumb->getClientOriginalExtension();
+                        Storage::disk(env('STORAGE_DISK', 's3'))->put($thumb_slug, file_get_contents($thumb));
+                    }
+
+                    if($content_slug || $thumb_slug) {
+                        Media::create([
+                            "user_id" => $userId,
+                            "type" => $data['type'],
+                            "size" => $data['size'],
+                            "mediable_id" => $message->id,
+                            "mediable_type" => $message->getMorphClass(),
+                            "media_key" => $content_slug,
+                            "thumbnail_key" => $thumb_slug,
+                        ]);
+
+                        $message->load('media');
+                    }
+
+
+                    return $this->jsonSuccess(200, 'Message sent successfully!', ['message' => new MessageResource($message)]);
+                } else {
+                    return $this->jsonError(500, 'Server Error: Failed to create message');
+                }
+
             } else {
                 return $this->jsonError(403, 'Conversation or parent comment not found');
             }
@@ -147,11 +185,13 @@ class ChatService extends Service {
         try{
             $messages = Message::query();
             $messages->where('conversation_id', request()->conversation_id)
-            ->whereHas('conversation.participants', function (Builder $query) use ($userId) {
-                $query->where($query->qualifyColumn('user_id'), $userId);
-            });
+                ->whereHas('conversation.participants', function (Builder $query) use ($userId) {
+                    $query->where($query->qualifyColumn('user_id'), $userId);
+                })
+                ->status('published')
+                ->with('media');
 
-            return $this->jsonSuccess(200, 'Success', ['conversations' => MessageResource::collection($messages->paginate($this->perPage))->resource]);
+            return $this->jsonSuccess(200, 'Success', ['messages' => MessageResource::collection($messages->paginate($this->perPage))->resource]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
@@ -161,6 +201,11 @@ class ChatService extends Service {
     {
         try{
             $isDeleted = Message::where('id', $id)->where('user_id', $userId)->update(['status' => 'deleted']);
+
+            $isMediaDeleted = Media::where('user_id', $userId)
+                ->where('mediable_id', $id)
+                ->where('mediable_type', (new Message)->getMorphClass())
+                ->update(['status' => 'deleted']);
 
             if( $isDeleted ) {
                 return $this->jsonSuccess(204, 'Message deleted successfully');

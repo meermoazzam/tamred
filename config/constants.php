@@ -28,7 +28,7 @@ return [
     ],
     'media' => [
         'status' => [
-            'active',
+            'published',
             'archived',
             'deleted',
         ]

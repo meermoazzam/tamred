@@ -80,6 +80,6 @@ class Post extends Model
 
     public function media()
     {
-        return $this->morphMany(Media::class, 'mediable', 'mediable_type', 'mediable_id', 'id')->where('status', 'active');
+        return $this->morphMany(Media::class, 'mediable', 'mediable_type', 'mediable_id', 'id')->where('status', 'published');
     }
 }

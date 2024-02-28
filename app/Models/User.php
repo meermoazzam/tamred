@@ -8,15 +8,14 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -89,7 +88,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getImageAttribute($value)
     {
         if($value) {
-            return env("AWS_BUCKET") . '.s3.' . env("AWS_DEFAULT_REGION") . '.amazonaws.com/' . $value;
+            return Storage::disk(env('STORAGE_DISK', 's3'))->url($value);
         } else {
             return $value;
         }
@@ -98,7 +97,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getThumbnailAttribute($value)
     {
         if($value) {
-            return env("AWS_BUCKET") . '.s3.' . env("AWS_DEFAULT_REGION") . '.amazonaws.com/' . $value;
+            return Storage::disk(env('STORAGE_DISK', 's3'))->url($value);
         } else {
             return $value;
         }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
@@ -15,7 +16,6 @@ class Media extends Model
         'user_id',
         'mediable_id',
         'mediable_type',
-        'name',
         'type',
         'size',
         'media_key',
@@ -26,11 +26,19 @@ class Media extends Model
 
     public function getMediaKeyAttribute($value)
     {
-        return env("AWS_BUCKET") . '.s3.' . env("AWS_DEFAULT_REGION") . '.amazonaws.com/' . $value;
+        if($value) {
+            return Storage::disk(env('STORAGE_DISK', 's3'))->url($value);
+        } else {
+            return $value;
+        }
     }
 
     public function getThumbnailKeyAttribute($value)
     {
-        return env("AWS_BUCKET") . '.s3.' . env("AWS_DEFAULT_REGION") . '.amazonaws.com/' . $value;
+        if($value) {
+            return Storage::disk(env('STORAGE_DISK', 's3'))->url($value);
+        } else {
+            return $value;
+        }
     }
 }

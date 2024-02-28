@@ -84,6 +84,6 @@ class UserController extends ApiController
 
     public function updateProfilePicture(ProfilePictureRequest $request): JsonResponse
     {
-        return $this->mediaService->updateProfilePicture(auth()->id(), $request);
+        return $this->userService->updateProfilePicture(auth()->id(), $request->validated());
     }
 }

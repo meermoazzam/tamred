@@ -23,9 +23,13 @@ class SendMessageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "conversation_id" => 'required|integer|exists:' . (new Conversation())->getTable() . ',id',
-            "parent_id" => 'nullable|integer',
-            "description" => 'required|string|max:1000',
+            "conversation_id" => 'required|exists:' . (new Conversation())->getTable() . ',id',
+            "parent_id" => 'sometimes|nullable',
+            "description" => 'nullable|string|max:2000',
+            "file" => 'sometimes|nullable|file',
+            "thumbnail" => 'sometimes|nullable|file',
+            'size' => 'sometimes|nullable',
+            'type' => 'sometimes|nullable|in:image,video',
         ];
     }
 }

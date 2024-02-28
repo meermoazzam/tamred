@@ -24,7 +24,7 @@ class CreateRequest extends FormRequest
         return [
             'post_id' => 'required|integer',
             'parent_id' => 'sometimes|nullable|integer',
-            'description' => 'required|string|max:10000',
+            'description' => 'required|nullable|string|max:10000',
         ];
     }
 }

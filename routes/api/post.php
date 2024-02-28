@@ -27,6 +27,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/posts/{id}/react', [PostController::class, 'react']);
     Route::get('/posts/{id}/react', [PostController::class, 'reactList']);
 
-    // media upload section
     Route::get('/posts/{id}/react', [PostController::class, 'reactList']);
+
+    Route::post('/posts/media/upload', [PostController::class, 'uploadMedia']);
+    Route::delete('/posts/media/delete', [PostController::class, 'deleteMedia']);
 });
