@@ -40,7 +40,7 @@ class AlbumService extends Service {
     {
         try{
             $album = Album::where('id', $id)->where('user_id', $userId)
-                ->withCount('posts','media')
+                // wip
                 ->statusNot('deleted')->first();
             return $this->jsonSuccess(200, 'Success', ['album' => $album ? new AlbumResource($album) : []]);
         } catch (Exception $e) {
@@ -55,7 +55,7 @@ class AlbumService extends Service {
             $albums->when($userId, function (Builder $query) use ($userId) {
                 $query->where('user_id', $userId);
             })->whereLike('name', request()->name)
-            ->withCount('posts','media')
+            // wip
             ->orderBy($this->orderBy, $this->orderIn)
             ->statusNot('deleted');
 
@@ -87,8 +87,7 @@ class AlbumService extends Service {
             $is_deleted = Album::where('id', $id)->where('user_id', $userId)->statusNot(['default'])
                 ->update(['status' => 'deleted']);
             if( $is_deleted ) {
-                Post::where('album_id', $id)->update(['album_id' => null]);
-
+                // wip
                 return $this->jsonSuccess(204, 'Album Deleted successfully');
             } else {
                 return $this->jsonError(403, 'No album found to delete, or can\'t delete default album');

@@ -42,7 +42,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'city',
         'state',
         'country',
-        'status'
+        'status',
+        'device_id',
+        'notification_settings',
     ];
 
     /**

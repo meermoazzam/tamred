@@ -32,16 +32,6 @@ class Album extends Model
         return $query->whereNotIn('status', $status);
     }
 
-    public function posts(): HasMany
-    {
-        return $this->hasMany(Post::class);
-    }
-
-    public function media(): HasMany
-    {
-        return $this->hasMany(Post::class);
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

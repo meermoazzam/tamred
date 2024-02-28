@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('status', 50);
             $table->string('title', 1000)->nullable();
             $table->string('description', 10000)->nullable();
-            $table->unsignedBigInteger('album_id')->nullable();
             $table->bigInteger('total_likes')->default(0);
             $table->bigInteger('total_comments')->default(0);
             $table->string('location');

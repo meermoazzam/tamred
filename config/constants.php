@@ -18,6 +18,14 @@ return [
             'deleted',
         ]
     ],
+    'activities' => [
+        'type' => [
+            'comment',
+            'follower',
+            'like',
+            'post',
+        ]
+    ],
     'posts' => [
         'status' => [
             'draft',
@@ -37,6 +45,12 @@ return [
         'status' => [
             'published',
             'archived',
+            'deleted',
+        ]
+    ],
+    'itineraries' => [
+        'status' => [
+            'published',
             'deleted',
         ]
     ],
@@ -63,6 +77,15 @@ return [
         'marketing' => true,
         'reset_password_otp' => null,
         'verify_email_otp' => null,
+    ],
+    'notification_settings' => [
+        'sms_notification' => 1,
+        'email_notification' => 1,
+        'push_notification' => 1,
+        'post_like_notification' => 1,
+        'post_comment_notification' => 1,
+        'follower_notification' => 1,
+        'new_message_notification' => 1,
     ]
 
 ];

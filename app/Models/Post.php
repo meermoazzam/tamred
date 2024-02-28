@@ -21,7 +21,6 @@ class Post extends Model
         'status',
         'title',
         'description',
-        'album_id',
         'total_likes',
         'total_comments',
         'location',

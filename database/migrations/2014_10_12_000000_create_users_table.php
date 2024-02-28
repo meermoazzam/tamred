@@ -33,6 +33,8 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->string('thumbnail')->nullable();
             $table->string('cover')->nullable();
+            $table->string('device_id')->nullable();
+            $table->string('notification_settings', 2000)->nullable()->default(json_encode(config('constants.notification_settings')));
             $table->string('status', 50)->default('active');
             $table->rememberToken();
             $table->timestamps();
