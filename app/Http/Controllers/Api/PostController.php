@@ -45,7 +45,7 @@ class PostController extends Controller
 
     public function list(ListRequest $request): JsonResponse
     {
-        return $this->postService->list();
+        return $this->postService->list(auth()->id());
     }
 
     public function update(UpdateRequest $request, $id): JsonResponse
@@ -61,11 +61,6 @@ class PostController extends Controller
     public function attachCategories(AttachCategoryRequest $request, $id): JsonResponse
     {
         return $this->postService->attachCategories(auth()->id(), $id);
-    }
-
-    public function bindAlbum(BindAlbumRequest $request, $id): JsonResponse
-    {
-        return $this->postService->bindAlbum(auth()->id(), $id);
     }
 
     public function react(ReactRequest $request, $id): JsonResponse

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Post;
+namespace App\Http\Requests\Album;
 
 use App\Models\Album;
 use Illuminate\Foundation\Http\FormRequest;
@@ -23,7 +23,8 @@ class BindAlbumRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'album_id' => 'nullable|integer',
+            'album_id' => 'required|integer',
+            'post_id' => 'required|integer',
         ];
     }
 }

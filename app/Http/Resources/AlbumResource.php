@@ -18,6 +18,8 @@ class AlbumResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'user' => new UserShortResource($this->whenLoaded('user')),
+            'posts_count' => $this->whenHas('posts_count'),
+            'media_count' => $this->whenHas('media_count'),
             'status' => $this->status,
             'created_at' => $this->created_at,
         ];

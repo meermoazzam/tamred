@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\Album\BindAlbumRequest;
 use App\Http\Requests\Album\CreateRequest;
 use App\Http\Requests\Album\UpdateRequest;
 use App\Services\AlbumService;
@@ -45,4 +46,15 @@ class AlbumController extends ApiController
     {
         return $this->albumService->delete(auth()->id(), $id);
     }
+
+    public function addPost(BindAlbumRequest $request): JsonResponse
+    {
+        return $this->albumService->addPost(auth()->id(), $request->validated());
+    }
+
+    public function removePost(BindAlbumRequest $request): JsonResponse
+    {
+        return $this->albumService->removePost(auth()->id(), $request->validated());
+    }
+
 }

@@ -30,6 +30,7 @@ class ListRequest extends FormRequest
             'country' => 'nullable|string|max:200',
             'tags' => 'nullable|string|max:200',
             'categories' => 'nullable|array',
+            'album_id' => 'nullable|integer',
         ];
     }
 }

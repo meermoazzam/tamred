@@ -72,9 +72,19 @@ class Post extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public function albums(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, (new AlbumPost)->getTable());
+    }
+
+    public function albumPosts(): HasMany
+    {
+        return $this->hasMany(AlbumPost::class);
+    }
+
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class, (new CategoryPost())->getTable());
+        return $this->belongsToMany(Category::class, (new CategoryPost)->getTable());
     }
 
     public function media()
