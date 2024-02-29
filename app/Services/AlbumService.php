@@ -43,8 +43,10 @@ class AlbumService extends Service {
             $album = Album::where('id', $id)->where('user_id', $userId)
                 ->withCount('posts')
                 ->statusNot('deleted')->first();
-
-            $album->media_count = $album->media_count;
+            
+            if($album) {
+                $album->media_count = $album->media_count;
+            }
 
             return $this->jsonSuccess(200, 'Success', ['album' => $album ? new AlbumResource($album) : []]);
         } catch (Exception $e) {
