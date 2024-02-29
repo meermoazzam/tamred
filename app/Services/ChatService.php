@@ -188,7 +188,6 @@ class ChatService extends Service {
                 ->whereHas('conversation.participants', function (Builder $query) use ($userId) {
                     $query->where($query->qualifyColumn('user_id'), $userId);
                 })
-                ->status('published')
                 ->with('media');
 
             return $this->jsonSuccess(200, 'Success', ['messages' => MessageResource::collection($messages->paginate($this->perPage))->resource]);

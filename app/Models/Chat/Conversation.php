@@ -30,6 +30,6 @@ class Conversation extends Model
 
     public function latestMessage()
     {
-        return $this->hasOne(Message::class)->latest();
+        return $this->hasOne(Message::class)->latest()->where('status', 'published');
     }
 }

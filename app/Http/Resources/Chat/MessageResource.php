@@ -18,8 +18,8 @@ class MessageResource extends JsonResource
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
-            'status' => $this->when($this->status, $this->status),
-            'description' => $this->when(($this->status != 'deleted'), $this->description),
+            'status' => $this->status,
+            'description' => $this->description,
             'media' => new MediaResource($this->whenLoaded('media')),
             'created_at' => $this->created_at,
         ];
