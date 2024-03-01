@@ -85,10 +85,16 @@ class PostService extends Service {
         }
     }
 
-    public function get(int $id): JsonResponse
+    public function get(int $userId, int $id): JsonResponse
     {
         try{
-            $post = Post::where('id', $id)->with('user', 'media')->status('published')->first();
+            $post = Post::where('id', $id)
+                ->with(['user', 'media', 'categories',
+                    'isReactedByUser' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId);
+                    }
+                ])
+                ->status('published')->first();
 
             $taggedUsersData = $post?->tagged_users != null ? $post->tagged_users : [];
             $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData))->get();
@@ -141,7 +147,11 @@ class PostService extends Service {
                 });
             })
             ->status('published')
-            ->with('user', 'media', 'categories')
+            ->with(['user', 'media', 'categories',
+                'isReactedByUser' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                },
+            ])
             ->orderBy($this->orderBy, $this->orderIn);
 
             $posts = $posts->paginate($this->perPage);

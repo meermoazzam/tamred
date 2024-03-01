@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Post extends Model
 {
@@ -90,5 +91,16 @@ class Post extends Model
     public function media()
     {
         return $this->morphMany(Media::class, 'mediable', 'mediable_type', 'mediable_id', 'id')->where('status', 'published');
+    }
+
+    public function reactions(): MorphMany
+    {
+        return $this->morphMany(Reaction::class, 'reactable', 'reactable_class', 'reactable_id', 'id');
+    }
+
+    // need to use query builder to fetch result regarding user_id
+    public function isReactedByUser()
+    {
+        return $this->morphOne(Reaction::class, 'reactable', 'reactable_class', 'reactable_id', 'id');
     }
 }

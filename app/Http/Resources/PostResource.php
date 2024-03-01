@@ -18,6 +18,7 @@ class PostResource extends JsonResource
             'id' => $this->id,
             'user' => new UserShortResource($this->whenLoaded('user')),
             'media' => MediaResource::collection($this->whenLoaded('media')),
+            'is_reacted_by_me' => new ReactionResource($this->whenLoaded('isReactedByUser')),
             'title' => $this->title,
             'description' => $this->description,
             'location' => $this->location,

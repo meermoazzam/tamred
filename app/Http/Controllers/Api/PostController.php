@@ -40,7 +40,7 @@ class PostController extends Controller
 
     public function get($id): JsonResponse
     {
-        return $this->postService->get($id);
+        return $this->postService->get(auth()->id(), $id);
     }
 
     public function list(ListRequest $request): JsonResponse
