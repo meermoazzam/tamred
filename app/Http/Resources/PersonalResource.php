@@ -34,6 +34,7 @@ class PersonalResource extends JsonResource
             'image' => $this->image,
             'thumbnail' => $this->thumbnail,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'status' => $this->status,
         ];
     }
 }

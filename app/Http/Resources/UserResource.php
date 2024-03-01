@@ -33,6 +33,7 @@ class UserResource extends JsonResource
             'in_my_following' => $this->whenHas('inMyFollowing'),
             'is_my_follower' => $this->whenHas('isMyFollower'),
             'created_at' => $this->created_at,
+            'status' => $this->status,
         ];
     }
 }
