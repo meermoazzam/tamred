@@ -22,6 +22,7 @@ class ParticipantResource extends JsonResource
             'user' => new UserShortResource($this->whenLoaded('user')),
             'status' => $this->status,
             'message_status' => $this->message_status,
+            'seen_at' => $this->seen_at,
             'created_at' => $this->created_at,
         ];
     }
