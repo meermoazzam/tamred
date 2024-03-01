@@ -88,6 +88,11 @@ class Post extends Model
         return $this->belongsToMany(Category::class, (new CategoryPost)->getTable());
     }
 
+    public function itins(): BelongsToMany
+    {
+        return $this->belongsToMany(Itinerary::class, ItinPost::class, 'post_id', 'itin_id');
+    }
+
     public function media()
     {
         return $this->morphMany(Media::class, 'mediable', 'mediable_type', 'mediable_id', 'id')->where('status', 'published');
