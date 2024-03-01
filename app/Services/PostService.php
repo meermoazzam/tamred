@@ -89,10 +89,10 @@ class PostService extends Service {
     {
         try{
             $post = Post::where('id', $id)
-                ->with(['user', 'media', 'categories',
-                    'isReactedByUser' => function ($query) use ($userId) {
+                    ->with(['user', 'media', 'categories',
+                    'reactions' => function ($query) use ($userId) {
                         $query->where('user_id', $userId);
-                    }
+                    },
                 ])
                 ->status('published')->first();
 
@@ -148,7 +148,7 @@ class PostService extends Service {
             })
             ->status('published')
             ->with(['user', 'media', 'categories',
-                'isReactedByUser' => function ($query) use ($userId) {
+                'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 },
             ])

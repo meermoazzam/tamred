@@ -97,10 +97,4 @@ class Post extends Model
     {
         return $this->morphMany(Reaction::class, 'reactable', 'reactable_class', 'reactable_id', 'id');
     }
-
-    // need to use query builder to fetch result regarding user_id
-    public function isReactedByUser()
-    {
-        return $this->morphOne(Reaction::class, 'reactable', 'reactable_class', 'reactable_id', 'id');
-    }
 }
