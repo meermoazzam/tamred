@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/albums', [AlbumController::class, 'create']);
     Route::post('/albums/add-post', [AlbumController::class, 'addPost']);
     Route::post('/albums/remove-post', [AlbumController::class, 'removePost']);

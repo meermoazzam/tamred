@@ -9,6 +9,7 @@ return [
         'status' => [
             'active',
             'blocked',
+            'deleted',
         ]
     ],
     'albums' => [

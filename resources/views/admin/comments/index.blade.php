@@ -85,7 +85,15 @@
                                         <td title="{{ $comment['description'] }}">{{ $comment['description'] }}</td>
                                         <td title="{{ $comment['status'] }}">
                                             @php
-                                                $badge = ($comment['status']=='published') ? 'primary' : ($comment['status']=='deleted' ? 'danger' : 'warning');
+                                                if ($comment['status'] == 'published') {
+                                                    $badge = 'success';
+                                                } elseif ($comment['status'] == 'archived') {
+                                                    $badge = 'warning';
+                                                } elseif ($comment['status'] == 'deleted') {
+                                                    $badge = 'danger';
+                                                } else {
+                                                    $badge = 'secondary';
+                                                }
                                             @endphp
                                             <span class="badge bg-{{ $badge }} ">{{ $comment['status'] }}</span>
                                         </td>
@@ -104,10 +112,6 @@
                                                 onclick="editModalOpener({{ $comment['id'] }})" class="fas fa-edit">
                                             </i>
                                             <span style="padding: 10px"></span>
-                                            <i style="cursor: pointer;" title="Delete"
-                                                onclick="deleteConfirmation({{ $comment['id'] }})"
-                                                class="fas fa-trash-alt">
-                                            </i>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -116,7 +120,6 @@
         </div>
     </div>
 
-    @include('admin.delete-modal')
     @include('admin.comments.edit-modal')
 
 @endsection
@@ -134,25 +137,20 @@
 @push('scripts')
     <script>
         const update_comment_url = "{{ route('admin.comments.update') }}";
-        const delete_comment_url = "{{ route('admin.comments.delete') }}";
 
         $(document).ready(function() {
             $('#datatable').DataTable({});
+            $('#commentStatusSelect').select2({});
 
             comments = @json($comments);
             key_comments = columnToKey(comments, 'id');
 
         });
 
-        function deleteConfirmation(id) {
-            $("#modal-custom-body").html('Comment by </b>' + key_comments[id]['user']['first_name'] + '</b>');
-            $("#delete-modal-success-btn").attr('onclick', "deleteComment(" + id + ")");
-            openModal("deleteModal");
-        }
-
         function editModalOpener(id) {
             $("#edit-comment-modal-success-btn").attr('onclick', "editComment(" + id + ")");
             $("#edit-description").text(key_comments[id]['description']);
+            $("#commentStatusSelect").val(key_comments[id]['status']).trigger('change');
             openModal("editCommentModal");
         }
 
@@ -165,7 +163,8 @@
                 data: {
                     '_token': $('meta[name="csrf-token"]').attr('content'),
                     'id': id,
-                    'description': $('#edit-description').val()
+                    'description': $('#edit-description').val(),
+                    'status': $("#commentStatusSelect").val(),
                 },
                 success: function(data) {
                     hideLoader();
@@ -182,40 +181,6 @@
                 error: function(XMLHttpRequest) {
                     hideLoader();
                     message = 'Error! Failed to edit comment';
-                    if(data.status < 500) {
-                        message = data.responseJSON.message;
-                    }
-                    toastr.error(message);
-                }
-            }); // end of ajax function
-        }
-
-        function deleteComment(id) {
-            showLoader();
-            $.ajax({
-                type: "post",
-                url: delete_comment_url,
-                data: {
-                    '_token': $('meta[name="csrf-token"]').attr('content'),
-                    'id': id
-                },
-                success: function(data, xhr) {
-                    hideLoader();
-                    console.log(xhr);
-                    if (xhr == "nocontent") {
-                        closeModal("deleteModal");
-                        toastr.info("Comment Deleted Successfully");
-
-                        setTimeout(() => {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        toastr.error(data['message']);
-                    }
-                },
-                error: function(data, XMLHttpRequest) {
-                    hideLoader();
-                    message = 'Error! Failed to delete comment';
                     if(data.status < 500) {
                         message = data.responseJSON.message;
                     }

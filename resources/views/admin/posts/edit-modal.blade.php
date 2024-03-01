@@ -64,6 +64,19 @@
                         autocomplete="country">
                 </div>
                 <br>
+                <div class="row">
+                    <div class="form-group col-md-12">
+                        <label>Status</label>
+                        <label style="color: red;"></label>
+                        <select id="postStatusSelect" name="status" style="width: 100%">
+                            @foreach (config('constants.posts.status') as $status)
+                                @if ($status != 'draft')
+                                    <option value="{{ $status }}">{{ ucwords($status) }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-success" id="edit-post-modal-success-btn" type="button"

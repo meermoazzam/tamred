@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/categories/{id}', [CategoryController::class, 'get']);
     Route::get('/categories', [CategoryController::class, 'list']);
 

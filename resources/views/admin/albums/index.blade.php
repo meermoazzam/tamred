@@ -72,6 +72,7 @@
                                     <th>Name</th>
                                     <th>Status</th>
                                     <th>Posts</th>
+                                    <th>Media</th>
                                     <th>User's ID</th>
                                     <th>User's Name</th>
                                     <th>User Email</th>
@@ -91,6 +92,7 @@
                                             <span class="badge bg-{{ $badge }} ">{{ $album['status'] }}</span>
                                         </td>
                                         <td>{{ $album['posts_count'] }}</td>
+                                        <td>{{ $album['media_count'] }}</td>
                                         <td>{{ $album['user']['id'] }}</td>
                                         <td title="{{ $album['user']['first_name'] . ' ' . $album['user']['last_name'] }}">
                                             {{ $album['user']['first_name'] . ' ' . $album['user']['last_name'] }}
@@ -107,10 +109,17 @@
                                                 onclick="editModalOpener({{ $album['id'] }})" class="fas fa-edit">
                                             </i>
                                             <span style="padding: 10px"></span>
-                                            <i style="cursor: pointer;" title="Delete"
-                                                onclick="deleteConfirmation({{ $album['id'] }})"
-                                                class="fas fa-trash-alt">
-                                            </i>
+                                            @if ($album['status'] == 'deleted')
+                                                <i style="cursor: pointer;" title="Recover"
+                                                    onclick="recoverConfirmation({{ $album['id'] }})"
+                                                    class="fas fa-undo">
+                                                </i>
+                                            @else
+                                                <i style="cursor: pointer;" title="Delete"
+                                                    onclick="deleteConfirmation({{ $album['id'] }})"
+                                                    class="fas fa-trash-alt">
+                                                </i>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -120,6 +129,7 @@
     </div>
 
     @include('admin.delete-modal')
+    @include('admin.recover-modal')
     @include('admin.albums.edit-modal')
 
 @endsection
@@ -132,6 +142,7 @@
     <script>
         const update_album_url = "{{ route('admin.albums.update') }}";
         const delete_album_url = "{{ route('admin.albums.delete') }}";
+        const recover_album_url = "{{ route('admin.albums.recover') }}";
 
         $(document).ready(function() {
             $('#datatable').DataTable({});
@@ -145,6 +156,12 @@
             $("#modal-custom-body").html('Album: <b>' + key_albums[id]['name'] + '</b>');
             $("#delete-modal-success-btn").attr('onclick', "deleteAlbum(" + id + ")");
             openModal("deleteModal");
+        }
+
+        function recoverConfirmation(id) {
+            $("#recover-modal-custom-body").html('Album: <b>' + key_albums[id]['name'] + '</b>');
+            $("#recover-modal-success-btn").attr('onclick', "recoverAlbum(" + id + ")");
+            openModal("recoverModal");
         }
 
         function editModalOpener(id) {
@@ -203,6 +220,38 @@
                         closeModal("deleteModal");
                         toastr.info("Album Deleted Successfully");
 
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        toastr.error(data['message']);
+                    }
+                },
+                error: function(data, XMLHttpRequest) {
+                    hideLoader();
+                    message = 'Error! Failed to delete album';
+                    if(data.status < 500) {
+                        message = data.responseJSON.message;
+                    }
+                    toastr.error(message);
+                }
+            }); // end of ajax function
+        }
+
+        function recoverAlbum(id) {
+            showLoader();
+            $.ajax({
+                type: "post",
+                url: recover_album_url,
+                data: {
+                    '_token': $('meta[name="csrf-token"]').attr('content'),
+                    'id': id
+                },
+                success: function(data, xhr) {
+                    hideLoader();
+                    if (data.status) {
+                        closeModal("recoverModal");
+                        toastr.success("Album Updated Successfully");
                         setTimeout(() => {
                             location.reload();
                         }, 2000);

@@ -73,7 +73,6 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Title</th>
-                                    {{-- <th>Description</th> --}}
                                     <th>Status</th>
                                     {{-- <th>Likes</th> --}}
                                     <th>Comments</th>
@@ -89,10 +88,17 @@
                                     <tr>
                                         <td>{{ $post['id'] }}</td>
                                         <td title="{{ $post['title'] }}">{{ $post['title'] }}</td>
-                                        {{-- <td title="{{ $post['description'] }}">{{ $post['description'] }}</td> --}}
                                         <td title="{{ $post['status'] }}">
                                             @php
-                                                $badge = $post['status'] == 'published' ? 'success' : ($post['status'] == 'deleted' ? 'danger' : 'warning');
+                                                if ($post['status'] == 'published') {
+                                                    $badge = 'success';
+                                                } elseif ($post['status'] == 'archived') {
+                                                    $badge = 'warning';
+                                                } elseif ($post['status'] == 'deleted') {
+                                                    $badge = 'danger';
+                                                } else {
+                                                    $badge = 'secondary';
+                                                }
                                             @endphp
                                             <span class="badge bg-{{ $badge }} ">{{ $post['status'] }}</span>
                                         </td>
@@ -111,10 +117,6 @@
                                             <i style="cursor: pointer;" title="Edit"
                                                 onclick="editModalOpener({{ $post['id'] }})" class="fas fa-edit">
                                             </i>
-                                            <span style="padding: 10px"></span>
-                                            <i style="cursor: pointer;" title="Delete"
-                                                onclick="deleteConfirmation({{ $post['id'] }})" class="fas fa-trash-alt">
-                                            </i>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -123,7 +125,6 @@
         </div>
     </div>
 
-    @include('admin.delete-modal')
     @include('admin.posts.edit-modal')
 @endsection
 
@@ -140,21 +141,15 @@
 @push('scripts')
     <script>
         const update_post_url = "{{ route('admin.posts.update') }}";
-        const delete_post_url = "{{ route('admin.posts.delete') }}";
 
         $(document).ready(function() {
             $('#datatable').DataTable({});
+            $('#postStatusSelect').select2({});
 
             posts = @json($posts);
             key_posts = columnToKey(posts, 'id');
 
         });
-
-        function deleteConfirmation(id) {
-            $("#modal-custom-body").html('Post by </b>' + key_posts[id]['user']['first_name'] + '</b>');
-            $("#delete-modal-success-btn").attr('onclick', "deletePost(" + id + ")");
-            openModal("deleteModal");
-        }
 
         function editModalOpener(id) {
             $("#edit-post-modal-success-btn").attr('onclick', "editPost(" + id + ")");
@@ -166,6 +161,7 @@
             $("#edit-longitude").val(key_posts[id]['longitude']);
             $("#edit-state").val(key_posts[id]['state']);
             $("#edit-country").val(key_posts[id]['country']);
+            $("#postStatusSelect").val(key_posts[id]['status']).trigger('change');
             openModal("editPostModal");
         }
 
@@ -186,6 +182,7 @@
                     'longitude': $("#edit-longitude").val(),
                     'state': $("#edit-state").val(),
                     'country': $("#edit-country").val(),
+                    'status': $("#postStatusSelect").val(),
                 },
                 success: function(data) {
                     hideLoader();
@@ -204,40 +201,6 @@
                     console.log(data.responseJSON);
                     maxlength = "20"
                     message = 'Error! Failed to update post';
-                    if (data.status < 500) {
-                        message = data.responseJSON.message;
-                    }
-                    toastr.error(message);
-                }
-            }); // end of ajax function
-        }
-
-        function deletePost(id) {
-            showLoader();
-            $.ajax({
-                type: "post",
-                url: delete_post_url,
-                data: {
-                    '_token': $('meta[name="csrf-token"]').attr('content'),
-                    'id': id
-                },
-                success: function(data, xhr) {
-                    hideLoader();
-                    console.log(xhr);
-                    if (xhr == "nocontent") {
-                        closeModal("deleteModal");
-                        toastr.info("Post Deleted Successfully");
-
-                        setTimeout(() => {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        toastr.error(data['message']);
-                    }
-                },
-                error: function(data, XMLHttpRequest) {
-                    hideLoader();
-                    message = 'Error! Failed to delete post';
                     if (data.status < 500) {
                         message = data.responseJSON.message;
                     }

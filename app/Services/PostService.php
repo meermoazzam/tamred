@@ -146,6 +146,9 @@ class PostService extends Service {
                         ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
                 });
             })
+            ->whereHas('user', function (Builder $query) {
+                $query->where('status', 'active');
+            })
             ->status('published')
             ->with(['user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
@@ -198,7 +201,7 @@ class PostService extends Service {
                 ->where('mediable_type', (new Post)->getMorphClass())
                 ->update(['status' => 'deleted']);
 
-            $is_deleted = Comment::where('post_id', $id)
+            $isCommentsDeleted = Comment::where('post_id', $id)
                 ->update(['status' => 'deleted']);
 
             if( $is_deleted ) {

@@ -33,6 +33,7 @@ class PostResource extends JsonResource
             'total_comments' => $this->total_comments,
             'allow_comments' => $this->allow_comments,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

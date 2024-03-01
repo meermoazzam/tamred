@@ -110,54 +110,35 @@ class AppController extends Controller
     public function updateUsers(UserUpdateRequest $request)
     {
         try {
-            $isUpdated = User::where('id', $request->id)->update($request->validated());
+            $data = $request->validated();
+            if($request->status) {
+                $data['status'] = $request->status;
+            }
+            $isUpdated = User::where('id', $request->id)->update($data);
+
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
-    public function deleteUsers(Request $request)
-    {
-        User::where('id', $request->id)->delete();
-        CategoryPost::whereHas('post', function($query) use ($request){
-            $query->where('user_id', $request->id);
-        })->delete();
-        Comment::where('user_id', $request->id)->delete();
-        Comment::whereHas('post', function($query) use ($request){
-            $query->where('user_id', $request->id);
-        })->delete();
-        Post::where('user_id', $request->id)->delete();
-        UserCategory::where('user_id', $request->id)->delete();
-        Album::where('user_id', $request->id)->delete();
-        Media::where('user_id', $request->id)->delete();
-        Participant::where('user_id', $request->id)->delete();
-        Message::where('user_id', $request->id)->delete();
-        FollowUser::where('user_id', $request->id)->orWhere('followed_id', $request->id)->delete();
-        BlockUser::where('user_id', $request->id)->orWhere('blocked_id', $request->id)->delete();
-        UserMeta::where('user_id', $request->id)->delete();
-        Reaction::where('user_id', $request->id)->delete();
-
-        return $this->jsonSuccess(204, 'Successfully Deleted!');
-    }
 
     public function getPosts()
     {
-        $posts = PostResource::collection(Post::with('user', 'media', 'categories')->where('status', 'published')->get());
+        $posts = PostResource::collection(Post::with('user', 'media')->statusNot('draft')->get());
         return view('admin.posts.index')->with(['posts' => $posts]);
     }
     public function updatePosts(UpdateRequest $request)
     {
         try {
-            $isUpdated = Post::where('id', $request->id)->update($request->validated());
+            $data = $request->validated();
+            if($request->status) {
+                $data['status'] = $request->status;
+            }
+            $isUpdated = Post::where('id', $request->id)->update($data);
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
-    }
-    public function deletePosts(Request $request)
-    {
-        $post = Post::where('id', $request->id)->first();
-        return $this->postService->delete($post->user_id, $request->id);
     }
 
 
@@ -230,7 +211,13 @@ class AppController extends Controller
     // albums
     public function getAlbums()
     {
-        $albums = AlbumResource::collection(Album::with('user')->withCount('posts', 'media')->get());
+        $albums = AlbumResource::collection(Album::with('user')->withCount('posts')->get());
+        $updatedAlbums = $albums->map(function($album) {
+            $album->media_count = $album->media_count;
+            return $album;
+        });
+        $albums = $updatedAlbums;
+
         return view('admin.albums.index')->with(['albums' => $albums]);
     }
     public function updateAlbums(Request $request)
@@ -247,6 +234,15 @@ class AppController extends Controller
         $album = Album::where('id', $request->id)->first();
         return $this->albumService->delete($album->user_id, $request->id);
     }
+    public function recoverAlbums(Request $request)
+    {
+        try {
+            $album = Album::where('id', $request->id)->update(['status' => 'published']);
+            return $this->jsonSuccess(200, 'Album recoverd as published');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
 
 
     // comments
@@ -258,20 +254,16 @@ class AppController extends Controller
     public function updateComments(CommentUpdateRequest $request)
     {
         try {
-            Comment::where('id', $request->id)->update($request->validated());
+            $data = $request->validated();
+            if($request->status) {
+                $data['status'] = $request->status;
+            }
+            Comment::where('id', $request->id)->update($data);
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
-    public function deleteComments(Request $request)
-    {
-        $comment = Comment::where('id', $request->id)->first();
-        return $this->commentService->delete($comment->user_id, $request->id);
-    }
-
-
-
 
     public function columnToKey($array, string $column = 'id')
     {

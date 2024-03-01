@@ -23,7 +23,7 @@ class CreateConversationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'integer|exists:' . (new User())->getTable() . ',id',
+            'user_id' => 'required|integer|exists:' . (new User())->getTable() . ',id|not_in:' . auth()->id(),
         ];
     }
 }

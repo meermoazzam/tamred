@@ -76,6 +76,7 @@
                         <th>Post's</th>
                         <th title="Followers/Following">F/F</th>
                         <th>Joined At</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -90,13 +91,15 @@
                             <td title="{{ $user['post_count'] }}">{{ $user['post_count'] }}</td>
                             <td>{{ $user['following_count'] . '/' . $user['following_count'] }}</td>
                             <td>{{ $user['created_at'] }}</td>
+                            <td title="{{ $user['status'] }}">
+                                @php
+                                    $badge = ($user['status']=='active') ? 'success' : ($user['status']=='deleted' ? 'danger' : 'warning');
+                                @endphp
+                                <span class="badge bg-{{ $badge }} ">{{ ucwords($user['status']) }}</span>
+                            </td>
                             <td>
                                 <i style="cursor: pointer;" title="Edit"
                                     onclick="editModalOpener({{ $user['id'] }})" class="fas fa-edit">
-                                </i>
-                                <span style="padding: 10px"></span>
-                                <i style="cursor: pointer;" title="Delete"
-                                    onclick="deleteConfirmation({{ $user['id'] }})" class="fas fa-trash-alt">
                                 </i>
                             </td>
                         </tr>
@@ -106,7 +109,6 @@
         </div>
     </div>
 
-    @include('admin.delete-modal')
     @include('admin.users.edit-modal')
 
 @endsection
@@ -124,7 +126,6 @@
 @push('scripts')
     <script>
         const update_user_url = "{{ route('admin.users.update') }}";
-        const delete_user_url = "{{ route('admin.users.delete') }}";
 
         $(document).ready(function() {
             $('#datatable').DataTable({});
@@ -132,17 +133,14 @@
                 placeholder: 'Choose Gender',
                 allowClear: true
             });
+            $('#userStatusSelect').select2({
+                placeholder: 'Choose Status',
+            });
 
             users = @json($users);
             key_users = columnToKey(users, 'id');
 
         });
-
-        function deleteConfirmation(id) {
-            $("#modal-custom-body").html('User: </b>' + key_users[id]['first_name'] + '</b>');
-            $("#delete-modal-success-btn").attr('onclick', "deleteUser(" + id + ")");
-            openModal("deleteModal");
-        }
 
         function editModalOpener(id) {
             $("#edit-user-modal-success-btn").attr('onclick', "editUser(" + id + ")");
@@ -155,6 +153,7 @@
             $("#edit-state").val(key_users[id]['state']);
             $("#edit-country").val(key_users[id]['country']);
             $("#edit-gender").val(key_users[id]['gender']).trigger('change');
+            $("#userStatusSelect").val(key_users[id]['status']).trigger('change');
             openModal("editUserModal");
         }
 
@@ -176,6 +175,7 @@
                     'gender': $("#edit-gender").val(),
                     'state': $("#edit-state").val(),
                     'country': $("#edit-country").val(),
+                    'status': $("#userStatusSelect").val(),
                 },
                 success: function(data) {
                     hideLoader();
@@ -193,40 +193,6 @@
                     hideLoader();
                     console.log(data.responseJSON);maxlength="20"
                     message = 'Error! Failed to update user';
-                    if(data.status < 500) {
-                        message = data.responseJSON.message;
-                    }
-                    toastr.error(message);
-                }
-            }); // end of ajax function
-        }
-
-        function deleteUser(id) {
-            showLoader();
-            $.ajax({
-                type: "post",
-                url: delete_user_url,
-                data: {
-                    '_token': $('meta[name="csrf-token"]').attr('content'),
-                    'id': id
-                },
-                success: function(data, xhr) {
-                    hideLoader();
-                    console.log(xhr);
-                    if (xhr == "nocontent") {
-                        closeModal("deleteModal");
-                        toastr.info("User Deleted Successfully");
-
-                        setTimeout(() => {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        toastr.error(data['message']);
-                    }
-                },
-                error: function(data, XMLHttpRequest) {
-                    hideLoader();
-                    message = 'Error! Failed to delete user';
                     if(data.status < 500) {
                         message = data.responseJSON.message;
                     }

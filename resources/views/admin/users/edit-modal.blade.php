@@ -78,6 +78,18 @@
                             autocomplete="off">
                     </div>
                 </div>
+                <br>
+                <div class="row">
+                    <div class="form-group col-md-12">
+                        <label>Status</label>
+                        <label style="color: red;"></label>
+                        <select id="userStatusSelect" name="status" style="width: 100%">
+                            @foreach (config('constants.users.status') as $status)
+                                <option value="{{ $status }}">{{ ucwords($status) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-success" id="edit-user-modal-success-btn" type="button"
