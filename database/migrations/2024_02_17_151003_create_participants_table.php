@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('conversation_id');
             $table->string('status', 50)->default('active');
             $table->integer('message_status')->default(1);
-            $table->timestamp('seen_at');
+            $table->timestamp('seen_at')->nullable()->default(null);
             $table->timestamps();
         });
     }

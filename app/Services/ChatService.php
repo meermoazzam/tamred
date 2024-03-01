@@ -75,7 +75,7 @@ class ChatService extends Service {
                 $participant = $conversation->participants->where('user_id', $userId)->first();
                 $messageStatus = $participant->message_status;
                 $seenAt = $participant->seen_at;
-                if($messageStatus != 2) {
+                                if($messageStatus != 2) {
                     $messageCount = Message::where('conversation_id', $conversation->id)
                         ->statusNot(['deleted'])
                         ->whereNot('user_id', $userId)->where('created_at', '>=', $seenAt)->count();
