@@ -159,8 +159,6 @@ class PostService extends Service {
             ->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
                 $query->where('status', 'active')
                     ->whereNotIn('id', $blockedUserIds);
-            })->whereHas('user.follower', function (Builder $query) use ($userId) {
-                $query->where('user_id', $userId);
             })
             ->status('published')
             ->with(['user', 'media', 'categories',
