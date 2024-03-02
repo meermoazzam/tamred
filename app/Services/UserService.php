@@ -31,7 +31,7 @@ class UserService extends Service
     public function whoAmI(): JsonResponse
     {
         try {
-            $user = User::with('categories')->find(auth()->id());
+            $user = User::with('categories')->withCount('post')->find(auth()->id());
             return $this->jsonSuccess(200, 'Success', ['user' => new PersonalResource($user)]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());

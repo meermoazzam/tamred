@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('/usernameAvailability', [AuthController::class, 'usernameAvailability']);
 Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/delete', [AuthController::class, 'deleteTest']);

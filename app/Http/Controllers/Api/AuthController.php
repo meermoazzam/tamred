@@ -36,6 +36,20 @@ class AuthController extends ApiController
         return response()->json(DB::delete("delete from users where email = '" . request()->email . "'"));
     }
 
+    public function usernameAvailability(Request $request) {
+        try {
+            return response()->json([
+                'status' => true,
+                'username_availability' => !User::where('username', $request->username)->exists(),
+            ], 200);
+        } catch (Exception $exception) {
+			return response()->json([
+                'status' => false,
+                'message' => $exception->getMessage()
+            ], 500);
+        }
+    }
+
     public function signup(Request $request)
     {
         try {

@@ -31,6 +31,7 @@ class PersonalResource extends JsonResource
             'city' => $this->city,
             'state' => $this->state,
             'country' => $this->country,
+            'post_count' => $this->post_count ?? 0,
             'image' => $this->image,
             'thumbnail' => $this->thumbnail,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
