@@ -19,13 +19,19 @@ class UserService extends Service
 
     private $perPage, $orderBy, $orderIn;
     /**
-     * UserService Constructor
-     */
-    public function __construct()
-    {
+	* @var activityService
+	*/
+	private $activityService;
+
+	/**
+     * PostService Constructor
+     * @param ActivityService
+    */
+    public function __construct(ActivityService $activityService) {
         $this->perPage = request()->per_page ?? 10;
         $this->orderBy = request()->order_by ?? 'id';
         $this->orderIn = request()->order_in ?? 'asc';
+        $this->activityService = $activityService;
     }
 
     public function whoAmI(): JsonResponse
@@ -121,6 +127,10 @@ class UserService extends Service
                     'followed_id' => $follow_id,
                     'is_approved' => true,
                 ], []);
+
+                // WRITE ACTIVITY
+                $this->activityService->generateActivity($follow_id, auth()->id(), 'followed');
+
                 return $this->jsonSuccess(200, 'Following!', []);
             } else {
                 return $this->jsonError(403, "User can't be followed", []);

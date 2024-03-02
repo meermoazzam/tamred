@@ -14,12 +14,19 @@ class CommentService extends Service {
 
     private $perPage, $orderBy, $orderIn;
 	/**
-    * CommentService Constructor
+	* @var activityService
+	*/
+	private $activityService;
+
+	/**
+     * PostService Constructor
+     * @param ActivityService
     */
-    public function __construct() {
+    public function __construct(ActivityService $activityService) {
         $this->perPage = request()->per_page ?? 10;
         $this->orderBy = request()->order_by ?? 'id';
         $this->orderIn = request()->order_in ?? 'asc';
+        $this->activityService = $activityService;
     }
 
     public function create(int $userId, Request $data): JsonResponse
@@ -39,6 +46,10 @@ class CommentService extends Service {
                     'status' => 'published',
                 ]);
                 $updatePostCommentCount = Post::where('id', $data['post_id'])->increment('total_comments');
+
+                // WRITE ACTIVITY
+                $this->activityService->generateActivity($post->user_id, $userId, 'commented', $post->id);
+
                 return $this->jsonSuccess(201, 'Comment created successfully!', ['comment' => new CommentResource($comment)]);
             } else {
                 return $this->jsonError(403, 'Failed to create comment, either post doesn\'t allow or parent comment not found.');

@@ -20,12 +20,19 @@ class ChatService extends Service {
 
     private $perPage, $orderBy, $orderIn;
 	/**
-    * ChatService Constructor
+	* @var activityService
+	*/
+	private $activityService;
+
+	/**
+     * PostService Constructor
+     * @param ActivityService
     */
-    public function __construct() {
+    public function __construct(ActivityService $activityService) {
         $this->perPage = request()->per_page ?? 10;
         $this->orderBy = request()->order_by ?? 'id';
         $this->orderIn = request()->order_in ?? 'asc';
+        $this->activityService = $activityService;
     }
 
     public function createConversation(int $userId, int $participantId): JsonResponse
@@ -119,10 +126,10 @@ class ChatService extends Service {
                 ]);
 
                 if($message) {
-
                     $message->conversation()->update([]);
                     $message->conversation->participants()->whereNot('user_id', $userId)->update(['message_status' => 1]);
 
+                    // Upload file
                     $content_slug = $thumb_slug = null;
                     if($data['file']) {
                         $content = $data['file'];
@@ -147,6 +154,13 @@ class ChatService extends Service {
                         ]);
 
                         $message->load('media');
+                    }
+
+                    // WRITE ACTIVITY
+                    $messageCount = Message::where('user_id', $userId)->where('conversation_id', $data['conversation_id'])->count();
+                    if($messageCount == 1) {
+                        $forUserId = $message->conversation->participants()->whereNot('user_id', $userId)->first()?->user_id;
+                        $this->activityService->generateActivity($forUserId, $userId, 'new_message');
                     }
 
 

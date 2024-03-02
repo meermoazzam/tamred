@@ -54,13 +54,17 @@ class ActivityService extends Service {
         }
     }
 
-    public function generateActivity(int $forUserId, int $causedByUserId, string $type, int $modelId, string $message = null) {
-        Activities::create([
-            'user_id' => $forUserId,
-            'caused_by' => $causedByUserId,
-            'model_id' => $modelId,
-            'type' => $type,
-            'message' => $message,
-        ]);
+    public function generateActivity(int $forUserId, int $causedByUserId, string $type, int $modelId = null, string $message = null) {
+        try {
+            Activities::create([
+                'user_id' => $forUserId,
+                'caused_by' => $causedByUserId,
+                'model_id' => $modelId,
+                'type' => $type,
+                'message' => $message,
+            ]);
+        } catch (Exception $e) {
+            // WIP
+        }
     }
 }

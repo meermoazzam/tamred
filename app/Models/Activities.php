@@ -24,6 +24,6 @@ class Activities extends Model
 
     public function sender(): HasOne
     {
-        return $this->hasOne(User::class, 'caused_by');
+        return $this->hasOne(User::class, 'id', 'caused_by');
     }
 }

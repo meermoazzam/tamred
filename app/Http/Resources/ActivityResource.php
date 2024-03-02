@@ -16,7 +16,7 @@ class ActivityResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => new UserShortResource($this->whenLoaded('user')),
+            'sender' => new UserShortResource($this->whenLoaded('sender')),
             'model_id' => $this->model_id,
             'type' => $this->type,
             'is_read' => $this->is_read,
