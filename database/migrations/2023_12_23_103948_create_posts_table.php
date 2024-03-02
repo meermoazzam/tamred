@@ -20,8 +20,8 @@ return new class extends Migration
             $table->bigInteger('total_likes')->default(0);
             $table->bigInteger('total_comments')->default(0);
             $table->string('location');
-            $table->string('latitude', 20);
-            $table->string('longitude', 20);
+            $table->decimal('latitude', 20, 10);
+            $table->decimal('longitude', 20, 10);
             $table->string('city', 200)->nullable();
             $table->string('state', 200)->nullable();
             $table->string('country', 200)->nullable();

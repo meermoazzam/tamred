@@ -19,6 +19,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/posts/{id}', [PostController::class, 'publish']);
     Route::get('/posts/{id}', [PostController::class, 'get']);
     Route::get('/posts', [PostController::class, 'list']);
+    Route::get('/posts/by/most-followed', [PostController::class, 'listByMostFollowedPeople']);
+    Route::get('/posts/by/near-me', [PostController::class, 'listByNearMe']);
+    Route::get('/posts/by/users-i-follow', [PostController::class, 'listByUsersIFollow']);
+    Route::get('/posts/by/my-friends', [PostController::class, 'listByMyFriends']);
     Route::put('/posts/{id}', [PostController::class, 'update']);
     Route::delete('/posts/{id}', [PostController::class, 'delete']);
 

@@ -52,9 +52,14 @@ class UserService extends Service
         }
     }
 
-    public function list(): JsonResponse
+    public function list($userId): JsonResponse
     {
         try {
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
             $users = User::query();
             $users->when(request()->first_name, function (Builder $query) {
                 $query->orWhereLike('first_name', request()->first_name);
@@ -62,7 +67,11 @@ class UserService extends Service
                 $query->orWhereLike('last_name', request()->last_name);
             })->when(request()->nickname, function (Builder $query) {
                 $query->orWhereLike('nickname', request()->nickname);
+            })->when(request()->username, function (Builder $query) {
+                $query->orWhereLike('username', request()->username);
             })
+                ->whereNot('id', $userId)
+                ->whereNotIn('id', $blockedUserIds)
                 ->withCount(['post', 'follower', 'following'])
                 ->orderBy($this->orderBy, $this->orderIn);
 
@@ -209,6 +218,25 @@ class UserService extends Service
             $followings->setCollection($updatedFollowers);
 
             return $this->jsonSuccess(200, 'Success', ['followings' => FollowResource::collection($followings)->resource]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function friendsList($userId): JsonResponse
+    {
+        try {
+            $friends = User::query();
+            $friends->whereHas('follower', function (Builder $query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->whereHas('following', function (Builder $query) use ($userId) {
+                $query->where('followed_id', $userId);
+            })
+            ->withCount('post', 'follower', 'following')
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            return $this->jsonSuccess(200, 'Success', ['friends' => UserResource::collection($friends->paginate($this->perPage))->resource]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

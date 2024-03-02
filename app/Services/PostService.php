@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\ReactionResource;
 use App\Http\Resources\UserShortResource;
+use App\Models\BlockUser;
 use App\Models\Comment;
 use App\Models\Media;
 use App\Models\Reaction;
@@ -111,6 +112,11 @@ class PostService extends Service {
     public function list($userId): JsonResponse
     {
         try{
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
             $posts = Post::query();
             $posts->when(request()->user_id, function (Builder $query) {
                 $query->where('user_id', request()->user_id);
@@ -146,8 +152,238 @@ class PostService extends Service {
                         ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
                 });
             })
-            ->whereHas('user', function (Builder $query) {
+            ->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
+                $query->where('status', 'active')
+                    ->whereNot('id', $userId)
+                    ->whereNotIn('id', $blockedUserIds);
+            })->whereHas('user.follower', function (Builder $query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->status('published')
+            ->with(['user', 'media', 'categories',
+                'reactions' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                },
+            ])
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            $posts = $posts->paginate($this->perPage);
+
+            $taggedUsersData = [];
+            foreach($posts as $post) {
+                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
+            }
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function listByMostFollowedPeople($userId): JsonResponse
+    {
+        try{
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $top10followedPeople = User::whereNotIn('id', $blockedUserIds)
+                ->where('status', 'active')
+                ->whereNot('id', $userId)
+                ->withCount('follower')->orderByDesc('follower_count')
+                ->take(10)->pluck('id')->toArray();
+
+            $posts = Post::whereHas('user', function (Builder $query) {
                 $query->where('status', 'active');
+            })
+            ->whereIn('user_id', $top10followedPeople)
+            ->status('published')
+            ->with(['user', 'media', 'categories',
+                'reactions' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                },
+            ])
+            ->orderBy('created_at', 'desc')
+            ->take(10)->get();
+
+            $taggedUsersData = [];
+            foreach($posts as $post) {
+                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
+            }
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function listByNearMe($userId): JsonResponse
+    {
+        try{
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $user = User::find($userId);
+            $userLatitude = request()->latitude ?? $user->latitude;
+            $userLongitude = request()->longitude ?? $user->longitude;
+            // Radius in kilometers
+            $radius = request()->radius ?? 100;
+            $maxLat = $userLatitude + rad2deg($radius / 6371);
+            $minLat = $userLatitude - rad2deg($radius / 6371);
+            $maxLon = $userLongitude + rad2deg(asin($radius / 6371) / cos(deg2rad($userLatitude)));
+            $minLon = $userLongitude - rad2deg(asin($radius / 6371) / cos(deg2rad($userLatitude)));
+
+            $posts = Post::query();
+            $posts->whereHas('user', function (Builder $query) {
+                $query->where('status', 'active');
+            })
+            ->whereBetween('latitude', [$minLat, $maxLat])
+            ->whereBetween('longitude', [$minLon, $maxLon])
+            ->whereNotIn('user_id', $blockedUserIds)
+            ->status('published')
+            ->with(['user', 'media', 'categories',
+                'reactions' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                },
+            ])
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            $posts = $posts->paginate($this->perPage);
+
+            $taggedUsersData = [];
+            foreach($posts as $post) {
+                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
+            }
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function listByUsersIFollow($userId): JsonResponse
+    {
+        try{
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $posts = Post::query();
+            $posts->when(request()->title, function (Builder $query) {
+                $query->whereLike('title', request()->title);
+            })
+            ->when(request()->description, function (Builder $query) {
+                $query->whereLike('description', request()->description);
+            })
+            ->when(request()->city, function (Builder $query) {
+                $query->whereLike('city', request()->city);
+            })
+            ->when(request()->state, function (Builder $query) {
+                $query->whereLike('state', request()->state);
+            })
+            ->when(request()->country, function (Builder $query) {
+                $query->whereLike('country', request()->country);
+            })
+            ->when(request()->tags, function (Builder $query) {
+                $query->whereLike('tags', '"' . request()->tags . '"');
+            })
+            ->when(request()->categories, function (Builder $query) {
+                $query->whereHas('categories', function (Builder $query) {
+                    $query->whereIn($query->qualifyColumn('id'), request()->categories)
+                        ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
+                });
+            })
+            ->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
+                $query->where('status', 'active')
+                    ->whereNot('id', $userId)
+                    ->whereNotIn('id', $blockedUserIds);
+            })->whereHas('user.follower', function (Builder $query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->status('published')
+            ->with(['user', 'media', 'categories',
+                'reactions' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                },
+            ])
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            $posts = $posts->paginate($this->perPage);
+
+            $taggedUsersData = [];
+            foreach($posts as $post) {
+                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
+            }
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function listByMyFriends($userId): JsonResponse
+    {
+        try{
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $posts = Post::query();
+            $posts->when(request()->title, function (Builder $query) {
+                $query->whereLike('title', request()->title);
+            })
+            ->when(request()->description, function (Builder $query) {
+                $query->whereLike('description', request()->description);
+            })
+            ->when(request()->city, function (Builder $query) {
+                $query->whereLike('city', request()->city);
+            })
+            ->when(request()->state, function (Builder $query) {
+                $query->whereLike('state', request()->state);
+            })
+            ->when(request()->country, function (Builder $query) {
+                $query->whereLike('country', request()->country);
+            })
+            ->when(request()->tags, function (Builder $query) {
+                $query->whereLike('tags', '"' . request()->tags . '"');
+            })
+            ->when(request()->categories, function (Builder $query) {
+                $query->whereHas('categories', function (Builder $query) {
+                    $query->whereIn($query->qualifyColumn('id'), request()->categories)
+                        ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
+                });
+            })
+            ->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
+                $query->where('status', 'active')
+                    ->whereNot('id', $userId)
+                    ->whereNotIn('id', $blockedUserIds);
+            })
+            ->whereHas('user.follower', function (Builder $query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->whereHas('user.following', function (Builder $query) use ($userId) {
+                $query->where('followed_id', $userId);
             })
             ->status('published')
             ->with(['user', 'media', 'categories',

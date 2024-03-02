@@ -39,7 +39,7 @@ class UserController extends ApiController
 
     public function list(): JsonResponse
     {
-        return $this->userService->list();
+        return $this->userService->list(auth()->id());
     }
 
     public function attachCategories(AttachCategoryRequest $request): JsonResponse
@@ -75,6 +75,11 @@ class UserController extends ApiController
     public function followingList($id): JsonResponse
     {
         return $this->userService->followingList($id);
+    }
+
+    public function friendsList(): JsonResponse
+    {
+        return $this->userService->friendsList(auth()->id());
     }
 
     public function update(UpdateRequest $request): JsonResponse

@@ -32,4 +32,5 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::get('/users/{id}/followers', [UserController::class, 'followerList']);
     Route::get('/users/{id}/following', [UserController::class, 'followingList']);
+    Route::get('/users/my/friends', [UserController::class, 'friendsList']);
 });

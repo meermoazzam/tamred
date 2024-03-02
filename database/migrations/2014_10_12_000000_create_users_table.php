@@ -25,8 +25,8 @@ return new class extends Migration
             $table->date('date_of_birth');
             $table->enum('gender', ['male', 'female', 'other']);
             $table->string('location');
-            $table->string('latitude', 20);
-            $table->string('longitude', 20);
+            $table->decimal('latitude', 20, 10);
+            $table->decimal('longitude', 20, 10);
             $table->string('city', 200)->nullable();
             $table->string('state', 200)->nullable();
             $table->string('country', 200)->nullable();

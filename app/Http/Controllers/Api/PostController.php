@@ -48,6 +48,26 @@ class PostController extends Controller
         return $this->postService->list(auth()->id());
     }
 
+    public function listByMostFollowedPeople(): JsonResponse
+    {
+        return $this->postService->listByMostFollowedPeople(auth()->id());
+    }
+
+    public function listByNearMe(): JsonResponse
+    {
+        return $this->postService->listByNearMe(auth()->id());
+    }
+
+    public function listByUsersIFollow(): JsonResponse
+    {
+        return $this->postService->listByUsersIFollow(auth()->id());
+    }
+
+    public function listByMyFriends(): JsonResponse
+    {
+        return $this->postService->listByMyFriends(auth()->id());
+    }
+
     public function update(UpdateRequest $request, $id): JsonResponse
     {
         return $this->postService->update(auth()->id(), $id, $request->validated());
