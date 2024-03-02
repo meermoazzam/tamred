@@ -21,10 +21,11 @@ return [
     ],
     'activities' => [
         'type' => [
-            'comment',
-            'follower',
-            'like',
-            'post',
+            'commented',
+            'followed',
+            'liked',
+            'posted',
+            'new_message',
         ]
     ],
     'posts' => [

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Activities extends Model
 {
@@ -20,4 +21,9 @@ class Activities extends Model
         'count',
         'is_read',
     ];
+
+    public function sender(): HasOne
+    {
+        return $this->hasOne(User::class, 'caused_by');
+    }
 }

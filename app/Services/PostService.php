@@ -24,18 +24,22 @@ class PostService extends Service {
     private $perPage, $orderBy, $orderIn;
     /**
 	* @var mediaService
+	* @var activityService
 	*/
 	private $mediaService;
+	private $activityService;
 
 	/**
      * PostService Constructor
      * @param MediaService
+     * @param ActivityService
     */
-    public function __construct(MediaService $mediaService) {
+    public function __construct(MediaService $mediaService, ActivityService $activityService) {
         $this->perPage = request()->per_page ?? 10;
         $this->orderBy = request()->order_by ?? 'id';
         $this->orderIn = request()->order_in ?? 'asc';
         $this->mediaService = $mediaService;
+        $this->activityService = $activityService;
     }
 
     public function create(int $userId, Request $data): JsonResponse
@@ -154,7 +158,6 @@ class PostService extends Service {
             })
             ->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
                 $query->where('status', 'active')
-                    ->whereNot('id', $userId)
                     ->whereNotIn('id', $blockedUserIds);
             })->whereHas('user.follower', function (Builder $query) use ($userId) {
                 $query->where('user_id', $userId);
@@ -484,6 +487,9 @@ class PostService extends Service {
 
                     // update the total likes column in posts
                     if($reaction->wasRecentlyCreated) $post->increment('total_likes');
+
+                    // WRITE ACTIVITY
+                    // $this->activityService->generateActivity($post->userId)
 
                 } else {
                     // remove the reaction
