@@ -102,23 +102,18 @@ class CommentService extends Service {
     public function delete(int $userId, int $id): JsonResponse
     {
         try{
-            // fetch post
-            $post_id = Comment::where('id', $id)->pluck('post_id')->first();
+            $comment = Comment::where('id', $id)->where('user_id', $userId)->statusNot('deleted')->first();
 
-            // delete comment and its child comments
-            $comments = Comment::query();
-            $comments->where(function (Builder $query) use ($userId, $id) {
-                $query->where('id', $id)->where('user_id', $userId);
-            })->orWhere('parent_id', $id)
-            ->statusNot('deleted');
+            if($comment) {
+                $isDeleted = $comment->update(['status' => 'deleted']);
+                $childComments = Comment::query();
+                $childComments->where('parent_id', $id)
+                   ->statusNot('deleted');
+                $childCommentsCount = $childComments->count();
+                $childComments->update(['status' => 'deleted']);
 
-            // get total commetents to be deleted & delete comments
-            $selectedCommentsCount = $comments->count();
-            $isDeleted = $comments->update(['status' => 'deleted']);
-
-            if( $isDeleted ) {
                 // update comments count in posts.
-                $updatePostCommentCount = Post::where('id', $post_id)->decrement('total_comments', $selectedCommentsCount);
+                $updatePostCommentCount = Post::where('id', $comment->post_id)->decrement('total_comments', $childCommentsCount + 1);
                 return $this->jsonSuccess(204, 'Comment Deleted successfully');
             } else {
                 return $this->jsonError(403, 'No comment found to delete');

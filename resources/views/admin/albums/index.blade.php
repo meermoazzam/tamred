@@ -91,16 +91,16 @@
                                             @endphp
                                             <span class="badge bg-{{ $badge }} ">{{ $album['status'] }}</span>
                                         </td>
-                                        <td>{{ $album['posts_count'] }}</td>
+                                        <td>{{ $album['posts_count'] }} <a href="{{ route('admin.posts.get', ['album_id' => $album['id'] ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td>{{ $album['media_count'] }}</td>
-                                        <td>{{ $album['user']['id'] }}</td>
+                                        <td>{{ $album['user']['id'] }} <a href="{{ route('admin.users.get', ['id' => $album['user']['id'] ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td title="{{ $album['user']['first_name'] . ' ' . $album['user']['last_name'] }}">
                                             {{ $album['user']['first_name'] . ' ' . $album['user']['last_name'] }}
                                         </td>
                                         <td
                                             title="{{ $album['user']['email'] }}">
                                             <img
-                                                src="{{ $album['user']['image'] ? 'https://' . $album['user']['image'] : ' ' }}">
+                                                src="{{ $album['user']['image'] ? $album['user']['image'] : ' ' }}">
                                                 {{ $album['user']['email'] }}
                                         </td>
                                         <td>{{ $album['created_at'] }}</td>

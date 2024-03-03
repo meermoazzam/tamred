@@ -103,13 +103,13 @@
                                             <span class="badge bg-{{ $badge }} ">{{ $post['status'] }}</span>
                                         </td>
                                         {{-- <td>{{ $post['total_likes'] }}</td> --}}
-                                        <td>{{ $post['total_comments'] }}</td>
+                                        <td>{{ $post['total_comments'] }} <a href="{{ route('admin.comments.get', ['post_id' => $post->id ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td>{{ count($post['media']) }}</td>
                                         <td title="{{ $post['location'] }}">{{ $post['location'] }}</td>
                                         <td
                                             title="{{ $post['user']['first_name'] . ' ' . $post['user']['last_name'] . ' (' . $post['user']['email'] . ')' }}">
                                             <img
-                                                src="{{ $post['user']['image'] ? 'https://' . $post['user']['image'] : ' ' }}">
+                                                src="{{ $post['user']['image'] ? $post['user']['image'] : ' ' }}">
                                             {{ $post['user']['first_name'] . ' ' . $post['user']['last_name'] . '(' . $post['user']['email'] . ')' }}
                                         </td>
                                         <td>{{ $post['created_at'] }}</td>

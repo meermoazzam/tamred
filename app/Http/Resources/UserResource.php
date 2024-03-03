@@ -32,6 +32,7 @@ class UserResource extends JsonResource
             'image' => $this->image,
             'thumbnail' => $this->thumbnail,
             'post_count' => $this->post_count ?? 0,
+            'album_count' => $this->whenHas('album_count'),
             'follower_count' => $this->follower_count ?? 0,
             'following_count' => $this->following_count ?? 0,
             'in_my_following' => $this->whenHas('inMyFollowing'),

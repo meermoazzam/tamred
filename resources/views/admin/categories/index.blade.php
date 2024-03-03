@@ -92,13 +92,13 @@
                                         <td title="{{ $category['id'] }}">{{ $category['id'] }}</td>
                                         <td title="{{ $category['name'] }}">{{ $category['name'] }}</td>
                                         <td title="{{ $category['sub_categories_count'] }}">
-                                            {{ $category['sub_categories_count'] }}</td>
+                                            {{ $category['sub_categories_count'] }} <a href="{{ $category['sub_categories_count'] != 0 ? route('admin.categories.get', ['parent_id' => $category->id ]) : '#' }}" target="{{ $category['sub_categories_count'] ? '_blank' : '' }}"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td style="text-align: center;"><img
                                                 src="{{ $category['icon'] ? $category['icon'] : ' ' }}"></td>
                                         <td><span
                                                 class="badge bg-{{ $category['parent_id'] ? 'success' : 'danger' }} ">{{ $category['parent_id'] ? 'Yes' : 'No' }}</span>
                                         </td>
-                                        <td>{{ $category['parent'] ? $category['parent']['name'] : '' }}</td>
+                                        <td>{{ $category['parent'] ? $category['parent']['name'] : 'Not Found' }} <a href="{{ $category['parent'] ? route('admin.categories.get', ['id' => $category->parent_id ]) : '#' }}" target="{{ $category['parent_id'] ? '_blank' : '' }}"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td>{{ $category['created_at'] }}</td>
                                         <td>
                                             <i style="cursor: pointer;" title="Edit"

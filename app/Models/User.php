@@ -82,6 +82,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Post::class, 'user_id', 'id')->status('published');
     }
 
+    public function album(): HasMany
+    {
+        return $this->hasMany(Album::class, 'user_id', 'id');
+    }
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, (new UserCategory())->getTable());

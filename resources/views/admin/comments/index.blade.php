@@ -97,15 +97,14 @@
                                             @endphp
                                             <span class="badge bg-{{ $badge }} ">{{ $comment['status'] }}</span>
                                         </td>
-
-                                        <td>{{ $comment['post_id'] }}</td>
+                                        <td>{{ $comment['post_id'] }} <a href="{{ route('admin.posts.get', ['id' => $comment->post_id ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td
                                             title="{{ $comment['user']['first_name'] . ' ' . $comment['user']['last_name'] . ' (' . $comment['user']['email'] . ')' }}">
                                             <img
-                                                src="{{ $comment['user']['image'] ? 'https://' . $comment['user']['image'] : ' ' }}">
+                                                src="{{ $comment['user']['image'] ? $comment['user']['image'] : ' ' }}">
                                             {{ $comment['user']['first_name'] . ' ' . $comment['user']['last_name'] . '(' . $comment['user']['email'] . ')' }}
                                         </td>
-                                        <td>{{ $comment['children_count'] }}</td>
+                                        <td>{{ $comment['children_count'] }} <a href="{{ $comment['children_count'] != 0 ? route('admin.comments.get', ['parent_id' => $comment->id ]) : '#' }}" target="{{ $comment['children_count'] ? '_blank' : '' }}"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td>{{ $comment['created_at'] }}</td>
                                         <td>
                                             <i style="cursor: pointer;" title="Edit"

@@ -74,6 +74,7 @@
                         <th>DOB</th>
                         <th>Gender</th>
                         <th>Post's</th>
+                        <th>Albums</th>
                         <th title="Followers/Following">F/F</th>
                         <th>Joined At</th>
                         <th>Status</th>
@@ -84,11 +85,12 @@
                     @foreach ($users as $user)
                         <tr>
                             <td title="{{ $user['id'] }}">{{ $user['id'] }}</td>
-                            <td title="{{ $user['first_name'] . ' ' . $user['last_name'] }}"><img src="{{ $user['image'] ? 'https://' . $user['image'] : ' ' }}"> {{ $user['first_name'] . ' ' . $user['last_name'] }}</td>
+                            <td title="{{ $user['first_name'] . ' ' . $user['last_name'] }}"><img src="{{ $user['image'] ? $user['image'] : ' ' }}"> {{ $user['first_name'] . ' ' . $user['last_name'] }}</td>
                             <td title="{{ $user['email'] }}">{{ $user['email'] }}</td>
                             <td title="{{ $user['date_of_birth'] }}">{{ $user['date_of_birth'] }}</td>
                             <td title="{{ $user['gender'] }}">{{ $user['gender'] }}</td>
-                            <td title="{{ $user['post_count'] }}">{{ $user['post_count'] }}</td>
+                            <td title="{{ $user['post_count'] }}">{{ $user['post_count'] }} <a href="{{ route('admin.posts.get', ['user_id' => $user->id ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
+                            <td title="{{ $user['album_count'] }}">{{ $user['album_count'] }} <a href="{{ route('admin.albums.get', ['user_id' => $user->id ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
                             <td>{{ $user['following_count'] . '/' . $user['following_count'] }}</td>
                             <td>{{ $user['created_at'] }}</td>
                             <td title="{{ $user['status'] }}">

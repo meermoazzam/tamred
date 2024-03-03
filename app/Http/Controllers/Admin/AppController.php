@@ -33,6 +33,7 @@ use App\Services\CommentService;
 use App\Services\PostService;
 use App\Services\UserService;
 use App\Traits\ResponseManager;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
@@ -98,13 +99,28 @@ class AppController extends Controller
 
     public function dashboard()
     {
+        $data['total_users'] = User::all()->count();
+        $data['total_blocked_users'] = User::where('status', 'blocked')->get()->count();
+        $data['total_posts'] = Post::all()->count();
+        $data['total_deleted_posts'] = Post::where('status', 'deleted')->get()->count();
+        $data['total_albums'] = Album::all()->count();
+        $data['total_categories'] = Category::all()->count();
+        $data['total_parent_categories'] = Category::where('parent_id', null)->get()->count();
+        $data['total_sub_categories'] = Category::whereNot('parent_id', null)->get()->count();
+        $data['total_comments'] = Comment::all()->count();
 
-        return view('admin.dashboard');
+        return view('admin.dashboard')->with($data);
     }
 
     public function getUsers()
-    {
-        $users = UserResource::collection(User::withCount(['post', 'follower', 'following'])->get());
+    {   $users = User::withCount(['post', 'follower', 'following', 'album'])
+            ->when(request()->status, function (Builder $query) {
+                $query->where('status', request()->status);
+            })
+            ->when(request()->id, function (Builder $query) {
+                $query->where('id', request()->id);
+            })->get();
+        $users = UserResource::collection($users);
         return view('admin.users.index')->with(['users' => $users]);
     }
     public function updateUsers(UserUpdateRequest $request)
@@ -124,7 +140,23 @@ class AppController extends Controller
 
     public function getPosts()
     {
-        $posts = PostResource::collection(Post::with('user', 'media')->statusNot('draft')->get());
+        $posts = Post::with('user', 'media')
+            ->when(request()->user_id, function (Builder $query) {
+                $query->where('user_id', request()->user_id);
+            })
+            ->when(request()->status, function (Builder $query) {
+                $query->where('status', request()->status);
+            })
+            ->when(request()->id, function (Builder $query) {
+                $query->where('id', request()->id);
+            })
+            ->when(request()->album_id, function (Builder $query) {
+                $query->whereHas('albumPosts.album', function (Builder $query) {
+                    $query->where($query->qualifyColumn('id'), request()->album_id);
+                });
+            })
+            ->statusNot('draft')->get();
+        $posts = PostResource::collection($posts);
         return view('admin.posts.index')->with(['posts' => $posts]);
     }
     public function updatePosts(UpdateRequest $request)
@@ -146,7 +178,21 @@ class AppController extends Controller
     // categories
     public function getCategories()
     {
-        $categories = CategoryResource::collection(Category::withCount('subCategories')->with('parent')->get());
+        $categories = Category::withCount('subCategories')->with('parent')
+            ->when(request()->id, function (Builder $query) {
+                $query->where('id', request()->id);
+            })
+            ->when(request()->hasParent, function (Builder $query) {
+                if(request()->hasParent == 'yes') {
+                    $query->whereNot('parent_id', null);
+                } else {
+                    $query->where('parent_id', null);
+                }
+            })
+            ->when(request()->parent_id, function (Builder $query) {
+                $query->where('parent_id', request()->parent_id);
+            })->get();
+        $categories = CategoryResource::collection($categories);
         return view('admin.categories.index')->with(['categories' => $categories]);
     }
     public function createCategories(Request $request)
@@ -211,7 +257,11 @@ class AppController extends Controller
     // albums
     public function getAlbums()
     {
-        $albums = AlbumResource::collection(Album::with('user')->withCount('posts')->get());
+        $albums = Album::with('user')->withCount('posts')
+            ->when(request()->user_id, function (Builder $query) {
+                $query->where('user_id', request()->user_id);
+            })->get();
+        $albums = AlbumResource::collection($albums);
         $updatedAlbums = $albums->map(function($album) {
             $album->media_count = $album->media_count;
             return $album;
@@ -248,7 +298,13 @@ class AppController extends Controller
     // comments
     public function getComments()
     {
-        $comments = CommentResource::collection(Comment::with('user')->withCount('children')->get());
+        $comments = Comment::with('user')->withCount('children')
+            ->when(request()->post_id, function (Builder $query) {
+                $query->where('post_id', request()->post_id);
+            })->when(request()->parent_id, function (Builder $query) {
+                $query->where('parent_id', request()->parent_id);
+            })->get();
+        $comments = CommentResource::collection($comments);
         return view('admin.comments.index')->with(['comments' => $comments]);
     }
     public function updateComments(CommentUpdateRequest $request)
@@ -257,6 +313,18 @@ class AppController extends Controller
             $data = $request->validated();
             if($request->status) {
                 $data['status'] = $request->status;
+                $comment = Comment::find($request->id);
+                $childComments = Comment::query();
+                $childComments->where('parent_id', $request->id)
+                   ->statusNot('deleted');
+                $childCommentsCount = $childComments->count();
+
+                if($comment->status == 'deleted' && $request->status != 'deleted') {
+                    $updatePostCommentCount = Post::where('id', $comment->post_id)->increment('total_comments');
+                } else if ($comment->status != 'deleted' && $request->status == 'deleted') {
+                    $childComments->update(['status' => 'deleted']);
+                    $updatePostCommentCount = Post::where('id', $comment->post_id)->decrement('total_comments', $childCommentsCount + 1);
+                }
             }
             Comment::where('id', $request->id)->update($data);
             return $this->jsonSuccess(200, 'Successfully updated!');
