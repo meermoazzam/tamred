@@ -9,6 +9,7 @@ use App\Http\Requests\User\UpdateRequest;
 use App\Services\MediaService;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UserController extends ApiController
 {
@@ -90,5 +91,10 @@ class UserController extends ApiController
     public function updateProfilePicture(ProfilePictureRequest $request): JsonResponse
     {
         return $this->userService->updateProfilePicture(auth()->id(), $request->validated());
+    }
+
+    public function updateDeviceId(Request $request): JsonResponse
+    {
+        return $this->userService->updateDeviceId(auth()->id(), $request);
     }
 }

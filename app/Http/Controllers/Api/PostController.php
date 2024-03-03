@@ -68,6 +68,11 @@ class PostController extends Controller
         return $this->postService->listByMyFriends(auth()->id());
     }
 
+    public function listByRandom(): JsonResponse
+    {
+        return $this->postService->listByRandom(auth()->id());
+    }
+
     public function update(UpdateRequest $request, $id): JsonResponse
     {
         return $this->postService->update(auth()->id(), $id, $request->validated());

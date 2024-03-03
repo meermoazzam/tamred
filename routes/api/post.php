@@ -23,6 +23,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/posts/by/near-me', [PostController::class, 'listByNearMe']);
     Route::get('/posts/by/users-i-follow', [PostController::class, 'listByUsersIFollow']);
     Route::get('/posts/by/my-friends', [PostController::class, 'listByMyFriends']);
+    Route::get('/posts/by/random', [PostController::class, 'listByRandom']);
     Route::put('/posts/{id}', [PostController::class, 'update']);
     Route::delete('/posts/{id}', [PostController::class, 'delete']);
 

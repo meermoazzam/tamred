@@ -21,6 +21,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::put('/users', [UserController::class, 'update']);
     Route::post('/users/profile-picture/upload', [UserController::class, 'updateProfilePicture']);
+    Route::post('/users/device-id/update', [UserController::class, 'updateDeviceId']);
 
     Route::post('/users/categories', [UserController::class, 'attachCategories']);
     Route::get('/users/{id}', [UserController::class, 'get']);

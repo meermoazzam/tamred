@@ -407,6 +407,61 @@ class PostService extends Service {
         }
     }
 
+    public function listByRandom($userId): JsonResponse
+    {
+        try{
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $posts = Post::when(request()->city, function (Builder $query) {
+                $query->whereLike('city', request()->city);
+            })
+            ->when(request()->state, function (Builder $query) {
+                $query->whereLike('state', request()->state);
+            })
+            ->when(request()->country, function (Builder $query) {
+                $query->whereLike('country', request()->country);
+            })
+            ->when(request()->tags, function (Builder $query) {
+                $query->whereLike('tags', '"' . request()->tags . '"');
+            })
+            ->when(request()->categories, function (Builder $query) {
+                $query->whereHas('categories', function (Builder $query) {
+                    $query->whereIn($query->qualifyColumn('id'), request()->categories)
+                        ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
+                });
+            })
+            ->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
+                $query->where('status', 'active')
+                    ->whereNot('id', $userId)
+                    ->whereNotIn('id', $blockedUserIds);
+            })
+            ->status('published')
+            ->with(['user', 'media', 'categories',
+                'reactions' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                },
+            ])
+            ->inRandomOrder()->take(10)->get();
+
+
+            $taggedUsersData = [];
+            foreach($posts as $post) {
+                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
+            }
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
     public function update(int $userId, int $id, array $data): JsonResponse
     {
         try{

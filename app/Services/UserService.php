@@ -12,6 +12,7 @@ use App\Models\BlockUser;
 use App\Models\FollowUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class UserService extends Service
@@ -285,6 +286,16 @@ class UserService extends Service
             User::where('id', $userId)->update($data);
 
             return $this->jsonSuccess(200, 'Profile picture uploaded successfully!');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function updateDeviceId(int $userId, Request $request): JsonResponse
+    {
+        try {
+            User::where('id', $userId)->update(['device_id' => $request->device_id]);
+            return $this->jsonSuccess(200, 'Device Id updated successfully!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
