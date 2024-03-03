@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\NameResource;
 use App\Http\Resources\PostResource;
+use App\Models\Album;
 use App\Models\Itinerary;
 use App\Models\ItinPost;
 use App\Models\Post;
@@ -28,16 +29,26 @@ class ItinService extends Service {
     public function create(int $userId, Request $data): JsonResponse
     {
         try{
-            $itinerary = Itinerary::create([
-                'user_id' => $userId,
-                'name' => $data['name'],
-                'data' => $data['data'],
-                'status' => 'published'
-            ]);
-
-            $itinerary->posts()->attach($data['post_ids']);
-
-            return $this->jsonSuccess(201, 'Itinerary created successfully!', ['itinerary' => new NameResource($itinerary)]);
+            $album = Album::where('id', $data['album_id'])->where('user_id', $userId)->first();
+            $itin = Itinerary::where('album_id', $data['album_id'])->first();
+            if($itin) {
+                return $this->jsonError(403, 'Album already contains Itinerary');
+            }
+            if($album) {
+                $itinerary = Itinerary::create([
+                    'user_id' => $userId,
+                    'album_id' => $data['album_id'],
+                    'name' => $data['name'],
+                    'data' => $data['data'],
+                    'status' => 'published'
+                ]);
+    
+                $itinerary->posts()->attach($data['post_ids']);
+    
+                return $this->jsonSuccess(201, 'Itinerary created successfully!', ['itinerary' => new NameResource($itinerary)]);
+            } else {
+                return $this->jsonError(403, 'No Album found to create Itinerary');
+            }
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

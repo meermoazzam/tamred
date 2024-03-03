@@ -41,12 +41,14 @@ class AlbumService extends Service {
     {
         try{
             $album = Album::where('id', $id)->where('user_id', $userId)
+                ->with('itinerary')
                 ->withCount('posts')
                 ->statusNot('deleted')->first();
 
             if($album) {
                 $album->media_count = $album->media_count;
                 $album->first_media = $album->first_media;
+                $album->first_post = $album->first_post;
             }
 
             return $this->jsonSuccess(200, 'Success', ['album' => $album ? new AlbumResource($album) : []]);
@@ -62,6 +64,7 @@ class AlbumService extends Service {
             $albums->when($userId, function (Builder $query) use ($userId) {
                 $query->where('user_id', $userId);
             })->whereLike('name', request()->name)
+            ->with('itinerary')
             ->withCount('posts')
             ->orderBy($this->orderBy, $this->orderIn)
             ->statusNot('deleted');
@@ -71,6 +74,7 @@ class AlbumService extends Service {
             $updatedAlbums = $albums->getCollection()->map(function($album) {
                 $album->media_count = $album->media_count;
                 $album->first_media = $album->first_media;
+                $album->first_post = $album->first_post;
                 return $album;
             });
 

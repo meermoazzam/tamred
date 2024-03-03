@@ -17,6 +17,7 @@ class Itinerary extends Model
     protected $fillable = [
         'name',
         'user_id',
+        'album_id',
         'data',
     ];
 
@@ -40,6 +41,11 @@ class Itinerary extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+    
+    public function album(): BelongsTo
+    {
+        return $this->belongsTo(Album::class);
     }
 
 }

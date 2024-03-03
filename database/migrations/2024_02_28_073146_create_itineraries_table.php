@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('itineraries', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('album_id');
             $table->string('name', 200)->nullable();
             $table->json('data')->nullable();
             $table->string('status', 50)->default('published');

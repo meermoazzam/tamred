@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Album extends Model
 {
@@ -39,6 +40,11 @@ class Album extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function itinerary(): HasOne
+    {
+        return $this->hasOne(Itinerary::class);
+    }
+
     public function posts(): BelongsToMany
     {
         return $this->belongsToMany(Post::class, (new AlbumPost)->getTable());
@@ -52,5 +58,10 @@ class Album extends Model
     public function getFirstMediaAttribute()
     {
         return $this->posts->flatMap->media->first();
+    }
+
+    public function getFirstPostAttribute()
+    {
+        return $this->posts->first();
     }
 }
