@@ -70,13 +70,17 @@ class ActivityService extends Service {
 
     public function generateActivity(int $forUserId, int $causedByUserId, string $type, int $modelId = null, string $message = null) {
         try {
-            Activities::create([
-                'user_id' => $forUserId,
-                'caused_by' => $causedByUserId,
-                'model_id' => $modelId,
-                'type' => $type,
-                'message' => $message,
-            ]);
+            if($forUserId != $causedByUserId) {
+                Activities::create([
+                    'user_id' => $forUserId,
+                    'caused_by' => $causedByUserId,
+                    'model_id' => $modelId,
+                    'type' => $type,
+                    'message' => $message,
+                ]);
+            } else {
+                // ignore
+            }
         } catch (Exception $e) {
             // WIP
         }
