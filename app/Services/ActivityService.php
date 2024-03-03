@@ -8,16 +8,19 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\Eloquent\Builder;
 
+use App\Services\OneSignalNotificationService;
+
 class ActivityService extends Service {
 
-    private $perPage, $orderBy, $orderIn;
+    private $perPage, $orderBy, $orderIn, $notificationService;
 	/**
     * ActivityService Constructor
     */
-    public function __construct() {
+    public function __construct(OneSignalNotificationService $notificationService) {
         $this->perPage = request()->per_page ?? 10;
         $this->orderBy = request()->order_by ?? 'id';
         $this->orderIn = request()->order_in ?? 'asc';
+        $this->notificationService = $notificationService;
     }
 
     public function list($userId): JsonResponse
@@ -78,6 +81,15 @@ class ActivityService extends Service {
                     'type' => $type,
                     'message' => $message,
                 ]);
+                if($type == Activities::TYPE_NEW_MESSAGE) {
+                    $this->notificationService->sendNewMessageNotification($forUserId);
+                } else if($type == Activities::TYPE_COMMENTED) {
+                    $this->notificationService->sendCommentedNotification($forUserId);
+                } else if ($type == Activities::TYPE_POST_LIKED) {
+                    $this->notificationService->sendPostLikedNotification($forUserId);
+                } else if($type == Activities::FOLLOWED) {
+                    $this->notificationService->sendFollowedNotification($forUserId);
+                }
             } else {
                 // ignore
             }

@@ -10,6 +10,11 @@ class Activities extends Model
 {
     use HasFactory;
 
+    const TYPE_NEW_MESSAGE = 'new_message';
+    const TYPE_COMMENTED = 'commented';
+    const TYPE_POST_LIKED = 'liked';
+    const TYPE_FOLLOWED = 'followed';
+
     protected $table = 'activities';
 
     protected $fillable = [
