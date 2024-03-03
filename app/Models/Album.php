@@ -48,4 +48,9 @@ class Album extends Model
     {
         return $this->posts->flatMap->media->count();
     }
+
+    public function getFirstMediaAttribute()
+    {
+        return $this->posts->flatMap->media->first();
+    }
 }

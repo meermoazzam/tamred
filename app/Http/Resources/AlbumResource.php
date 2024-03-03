@@ -20,7 +20,9 @@ class AlbumResource extends JsonResource
             'user' => new UserShortResource($this->whenLoaded('user')),
             'posts_count' => $this->whenHas('posts_count'),
             'media_count' => $this->whenHas('media_count'),
+            'first_media' => new MediaResource($this->whenHas('first_media')),
             'status' => $this->status,
+            'dafault_image' => config("app.url") . "/images/temp.jpg",
             'created_at' => $this->created_at,
         ];
     }

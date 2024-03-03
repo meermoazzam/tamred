@@ -43,9 +43,10 @@ class AlbumService extends Service {
             $album = Album::where('id', $id)->where('user_id', $userId)
                 ->withCount('posts')
                 ->statusNot('deleted')->first();
-            
+
             if($album) {
                 $album->media_count = $album->media_count;
+                $album->first_media = $album->first_media;
             }
 
             return $this->jsonSuccess(200, 'Success', ['album' => $album ? new AlbumResource($album) : []]);
@@ -69,6 +70,7 @@ class AlbumService extends Service {
 
             $updatedAlbums = $albums->getCollection()->map(function($album) {
                 $album->media_count = $album->media_count;
+                $album->first_media = $album->first_media;
                 return $album;
             });
 
@@ -137,7 +139,7 @@ class AlbumService extends Service {
     {
         try{
             $album = Album::where('id', $data['album_id'])->where('user_id', $userId)
-                ->status(['published'])->exists();
+                ->statusNot(['deleted'])->exists();
 
             if($album) {
                 $isDeleted = AlbumPost::where('album_id', $data['album_id'])
