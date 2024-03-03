@@ -26,6 +26,11 @@ class ActivityController extends Controller
         return $this->activityService->list(auth()->id());
     }
 
+    public function activitiesBy24hours(): JsonResponse
+    {
+        return $this->activityService->activitiesBy24hours(auth()->id());
+    }
+
     public function markAsRead(): JsonResponse
     {
         return $this->activityService->markAsRead(auth()->id());

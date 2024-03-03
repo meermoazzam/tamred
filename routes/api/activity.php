@@ -16,5 +16,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/activities', [ActivityController::class, 'list']);
+    Route::get('/activities/by/24hours', [ActivityController::class, 'activitiesBy24hours']);
     Route::post('/activities/mark-read', [ActivityController::class, 'markAsRead']);
 });

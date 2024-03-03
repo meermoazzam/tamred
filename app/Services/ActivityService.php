@@ -34,6 +34,20 @@ class ActivityService extends Service {
         }
     }
 
+    public function activitiesBy24hours($userId): JsonResponse
+    {
+        try{
+            $activities = Activities::where('user_id', $userId)
+                ->where('created_at', '>=', now()->subHours(24))
+                ->orderBy($this->orderBy, $this->orderIn)
+                ->with('sender')->get();
+
+            return $this->jsonSuccess(200, 'Success', ['activities' => ActivityResource::collection($activities)->resource]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
     public function markAsRead(int $userId): JsonResponse
     {
         try{

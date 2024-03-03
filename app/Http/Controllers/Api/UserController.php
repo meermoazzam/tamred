@@ -43,6 +43,11 @@ class UserController extends ApiController
         return $this->userService->list(auth()->id());
     }
 
+    public function listBySuggestion(): JsonResponse
+    {
+        return $this->userService->listBySuggestion(auth()->id());
+    }
+
     public function attachCategories(AttachCategoryRequest $request): JsonResponse
     {
         return $this->userService->attachCategories(auth()->id());

@@ -98,6 +98,48 @@ class UserService extends Service
         }
     }
 
+    public function listBySuggestion($userId): JsonResponse
+    {
+        try {
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $user = User::find($userId);
+            $userLatitude = request()->latitude ?? $user->latitude;
+            $userLongitude = request()->longitude ?? $user->longitude;
+
+            $users = User::query();
+            $users->select('*')
+                ->selectRaw(
+                    '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance',
+                    [$userLatitude, $userLongitude, $userLatitude]
+                )
+                ->orderByRaw('distance')
+                ->whereDoesntHave('follower', function (Builder $query) use ($userId) {
+                    $query->where('user_id', $userId);
+                })
+                ->whereNot('id', $userId)
+                ->whereNotIn('id', $blockedUserIds)
+                ->withCount(['post', 'follower', 'following']);
+
+            $users = $users->paginate($this->perPage);
+
+            $updatedUsers = $users->getCollection()->map(function ($user) {
+                $user->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $user->id)->exists();
+                $user->isMyFollower = FollowUser::where('user_id', $user->id)->where('followed_id', auth()->id())->exists();
+                return $user;
+            });
+
+            $users->setCollection($updatedUsers);
+
+            return $this->jsonSuccess(200, 'Success', ['users' => UserResource::collection($users)->resource]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
     public function attachCategories(int $userId): JsonResponse
     {
         try {
