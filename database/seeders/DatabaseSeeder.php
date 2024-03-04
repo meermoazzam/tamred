@@ -15,8 +15,8 @@ class DatabaseSeeder extends Seeder
             CategoryTableSeeder::class,
             UserTableSeeder::class,
             AlbumTableSeeder::class,
-            PostTableSeeder::class,
-            CommentTableSeeder::class,
+            // PostTableSeeder::class,
+            // CommentTableSeeder::class,
             FollowUserTableSeeder::class,
         ]);
     }

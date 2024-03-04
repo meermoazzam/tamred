@@ -52,16 +52,16 @@ class Album extends Model
 
     public function getMediaCountAttribute()
     {
-        return $this->posts->flatMap->media->count();
+        return $this->posts->flatMap->media->where('status', 'published')->count();
     }
 
     public function getFirstMediaAttribute()
     {
-        return $this->posts->flatMap->media->first();
+        return $this->posts->flatMap->media->where('status', 'published')->first();
     }
 
     public function getFirstPostAttribute()
     {
-        return $this->posts->first();
+        return $this->posts->where('status', 'published')->first();
     }
 }
