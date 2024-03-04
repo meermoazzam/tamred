@@ -122,19 +122,19 @@ class PostService extends Service {
                 $query->where('user_id', request()->user_id);
             })
             ->when(request()->title, function (Builder $query) {
-                $query->whereLike('title', request()->title);
+                $query->orWhereLike('title', request()->title);
             })
             ->when(request()->description, function (Builder $query) {
-                $query->whereLike('description', request()->description);
+                $query->orWhereLike('description', request()->description);
             })
             ->when(request()->city, function (Builder $query) {
-                $query->whereLike('city', request()->city);
+                $query->orWhereLike('city', request()->city);
             })
             ->when(request()->state, function (Builder $query) {
-                $query->whereLike('state', request()->state);
+                $query->orWhereLike('state', request()->state);
             })
             ->when(request()->country, function (Builder $query) {
-                $query->whereLike('country', request()->country);
+                $query->orWhereLike('country', request()->country);
             })
             ->when(request()->tags, function (Builder $query) {
                 $query->whereLike('tags', '"' . request()->tags . '"');
