@@ -48,6 +48,11 @@ class PostController extends Controller
         return $this->postService->list(auth()->id());
     }
 
+    public function listForHome(): JsonResponse
+    {
+        return $this->postService->listForHome(auth()->id());
+    }
+
     public function listByMostFollowedPeople(): JsonResponse
     {
         return $this->postService->listByMostFollowedPeople(auth()->id());

@@ -21,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Relation::enforceMorphMap([
+            'add' => 'App\Models\Add',
             'comment' => 'App\Models\Comment',
             'post' => 'App\Models\Post',
             'user' => 'App\Models\User',

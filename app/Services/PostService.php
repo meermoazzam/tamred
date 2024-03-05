@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use DB;
 use Str;
 use Exception;
 use App\Models\Post;
@@ -9,11 +10,13 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\ReactionResource;
 use App\Http\Resources\UserShortResource;
+use App\Models\Add;
 use App\Models\BlockUser;
 use App\Models\Comment;
 use App\Models\Media;
 use App\Models\Reaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -174,6 +177,124 @@ class PostService extends Service {
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function listForHome($userId): JsonResponse
+    {
+        try{
+            $user = User::find($userId);
+
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $postsByIFollow = Post::query();
+            $postsByIFollow->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
+                $query->where('status', 'active')
+                    ->whereNotIn('id', $blockedUserIds)
+                    ->whereNot('id', $userId);
+            })->whereHas('user.follower', function (Builder $query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->status('published')
+            ->orderBy('created_at', 'desc');
+            $postsByIFollowIds = $postsByIFollow->paginate(10)->pluck('id');
+
+            // top 10 now
+            $top10followedPeople = User::whereNotIn('id', $blockedUserIds)
+                ->where('status', 'active')
+                ->whereNot('id', $userId)
+                ->withCount('follower')->orderByDesc('follower_count')
+                ->take(10)->pluck('id')->toArray();
+
+            $top10FollowedPosts = Post::query();
+            $top10FollowedPosts->whereHas('user', function (Builder $query) {
+                $query->where('status', 'active');
+            })
+            ->whereIn('user_id', $top10followedPeople)
+            ->status('published')
+            ->orderBy('created_at', 'desc');
+            $top10FollowedPostIds = $top10FollowedPosts->paginate(10)->pluck('id');
+
+            $finalIds = $postsByIFollowIds->merge($top10FollowedPostIds);
+            $finalPosts = Post::whereIn('id', $finalIds)
+                ->with(['user', 'media', 'categories',
+                    'reactions' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId);
+                    },
+                ])->orderBy('created_at', 'desc')->get();
+
+            $dateOfBirth = Carbon::parse($user->date_of_birth); // Replace '1990-05-15' with your date of birth
+            $userAge = $dateOfBirth->age;
+
+            // dd($userAge);
+            $adds = Add::where(DB::raw('(6371 * acos(
+                    cos(radians('.$user->latitude.'))
+                    * cos(radians(latitude))
+                    * cos(radians(longitude) - radians('.$user->longitude.'))
+                    + sin(radians('.$user->latitude.'))
+                    * sin(radians(latitude))
+                ))'), '<=', DB::raw('`range`'))
+                ->where('start_date', '<=', Carbon::today())
+                ->where('end_date', '>=', Carbon::today())
+                ->where('status', 'active')
+                ->where('gender', $user->gender)
+                ->where('min_age', '<=', $userAge)
+                ->where('max_age', '>=', $userAge)
+                ->with('media')
+                ->inRandomOrder()
+                ->take((int)(count($finalPosts)/ 5))->get();
+
+
+            $processedAdds = collect();
+            foreach($adds as $add) {
+                $add->id = 0;
+                $add->user_id = 0;
+                $add->is_add = true;
+                $add->user = (object)[];
+                $add->my_reactions = [];
+                $add->description = '';
+                $add->location = '';
+                $add->city = '';
+                $add->state = '';
+                $add->country = '';
+                $add->tags = [];
+                $add->tagged_users = [];
+                $add->total_likes = 0;
+                $add->total_comments = 0;
+                $add->allow_comments = 0;
+                $add->categories = [];
+                $processedAdds->push($add);
+            }
+
+            $posts = collect();
+            $taggedUsersData = [];
+            $postCount = 0;
+            $addCount = 0;
+
+            foreach($finalPosts as $key => $post) {
+                $postCount += 1;
+                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
+                $post->is_add = false;
+                $post->link = '';
+                $posts->push($post);
+                if($postCount % 5 == 0) {
+                    if(isset($processedAdds[$addCount])) {
+                        $posts->push($processedAdds[$addCount]);
+                        $addCount++;
+                    }
+                }
+            }
+
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => $posts,
                 'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
             ]);
         } catch (Exception $e) {

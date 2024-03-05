@@ -28,6 +28,14 @@ return [
             'new_message',
         ]
     ],
+    'adds' => [
+        'status' => [
+            'created',
+            'active',
+            'expired',
+            'deleted',
+        ]
+    ],
     'posts' => [
         'status' => [
             'draft',
