@@ -85,6 +85,12 @@
                     Comments
                 </a>
             </li>
+            <li>
+                <a href="{{ route('admin.adds.get'); }}">
+                    {{-- <i class="fas fa-home"></i> --}}
+                    Add's
+                </a>
+            </li>
         </ul>
         <ul class="list-unstyled components" style="position: absolute; bottom: 0px;">
             <li>

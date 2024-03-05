@@ -45,4 +45,7 @@ Route::group(['prefix' => '/admin','as' => 'admin.', 'middleware' => ['auth', 'a
     Route::get('/comments', [AppController::class, 'getComments'])->name('comments.get');
     Route::post('/comments/update', [AppController::class, 'updateComments'])->name('comments.update');
 
+    Route::get('/adds', [AppController::class, 'getAdds'])->name('adds.get');
+    Route::post('/adds/create', [AppController::class, 'createAdds'])->name('adds.create');
+    Route::post('/adds/update', [AppController::class, 'updateAdds'])->name('adds.update');
 });

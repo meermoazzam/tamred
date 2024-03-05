@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Adds\AddsRequest;
 use App\Http\Requests\Comment\UpdateRequest as CommentUpdateRequest;
 use App\Http\Requests\Post\UpdateRequest;
 use App\Http\Requests\User\UpdateRequest as UserUpdateRequest;
@@ -12,6 +13,7 @@ use App\Http\Resources\CommentResource;
 use App\Services\AlbumService;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserResource;
+use App\Models\Add;
 use App\Models\Album;
 use App\Models\BlockUser;
 use App\Models\Category;
@@ -33,6 +35,7 @@ use App\Services\CommentService;
 use App\Services\PostService;
 use App\Services\UserService;
 use App\Traits\ResponseManager;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -342,5 +345,33 @@ class AppController extends Controller
             }
         }
         return $result;
+    }
+
+    // adds
+    public function getAdds()
+    {
+        Add::where('end_date', '<', Carbon::today())->update(['status' => 'expired']);
+        $adds = Add::withCount('media')->get();
+        return view('admin.adds.index')->with(['adds' => $adds]);
+    }
+    public function createAdds(AddsRequest $request)
+    {
+        try {
+            $data = $request->validated();
+            Add::create($data);
+            return $this->jsonSuccess(200, 'Successfully updated!');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+    public function updateAdds(AddsRequest $request)
+    {
+        try {
+            $data = $request->validated();
+            Add::where('id', $request->id)->update($data);
+            return $this->jsonSuccess(200, 'Successfully updated!');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
     }
 }
