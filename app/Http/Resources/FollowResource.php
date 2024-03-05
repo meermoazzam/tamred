@@ -15,11 +15,11 @@ class FollowResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int)$this->id,
             'follower' => new UserShortResource($this->whenLoaded('userDetailByUserId')),
             'following' => new UserShortResource($this->whenLoaded('userDetailByFollowedId')),
-            'in_my_following' => $this->whenHas('inMyFollowing'),
-            'is_my_follower' => $this->whenHas('isMyFollower'),
+            'in_my_following' => (bool)$this->whenHas('inMyFollowing'),
+            'is_my_follower' => (bool)$this->whenHas('isMyFollower'),
             'created_at' => $this->created_at,
         ];
     }

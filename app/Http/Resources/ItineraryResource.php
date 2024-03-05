@@ -15,10 +15,10 @@ class ItineraryResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int)$this->id,
             'name' => $this->name,
             'user' => new UserShortResource($this->whenLoaded('user')),
-            'posts_count' => $this->whenHas('posts_count'),
+            'posts_count' => (int)$this->whenHas('posts_count'),
             'status' => $this->status,
             'created_at' => $this->created_at,
         ];

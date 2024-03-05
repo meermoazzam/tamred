@@ -15,11 +15,11 @@ class AlbumResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int)$this->id,
             'name' => $this->name,
             'user' => new UserShortResource($this->whenLoaded('user')),
-            'posts_count' => $this->whenHas('posts_count'),
-            'media_count' => $this->whenHas('media_count'),
+            'posts_count' => (int)$this->whenHas('posts_count', $this->posts_count, 0),
+            'media_count' => (int)$this->whenHas('media_count', $this->media_count, 0),
             'itinerary' => new ItineraryResource($this->whenLoaded('itinerary')),
             'first_media' => new MediaResource($this->whenHas('first_media')),
             'first_post' => new PostResource($this->whenHas('first_post')),

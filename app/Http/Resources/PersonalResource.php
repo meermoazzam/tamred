@@ -15,7 +15,7 @@ class PersonalResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int)$this->id,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'bio' => $this->bio,
@@ -25,13 +25,13 @@ class PersonalResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'date_of_birth' => $this->date_of_birth,
             'gender' => $this->gender,
-            'location' => $this->location,
-            'latitude' => $this->latitude,
-            'longitude' => $this->longitude,
+            'location' => (string)$this->location,
+            'latitude' => (string)$this->latitude,
+            'longitude' => (string)$this->longitude,
             'city' => $this->city,
             'state' => $this->state,
             'country' => $this->country,
-            'post_count' => $this->post_count ?? 0,
+            'post_count' => (int)$this->post_count ?? 0,
             'image' => $this->image,
             'thumbnail' => $this->thumbnail,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),

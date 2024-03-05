@@ -15,7 +15,7 @@ class ReactionResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int)$this->id,
             'user' => new UserShortResource($this->whenLoaded('user')),
             'type' => $this->type,
             'created_at' => $this->created_at,

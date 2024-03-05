@@ -253,8 +253,8 @@ class PostService extends Service {
 
             $processedAdds = collect();
             foreach($adds as $add) {
-                $add->id = 0;
-                $add->user_id = 0;
+                $add->id = (int)0;
+                $add->user_id = (int)0;
                 $add->is_add = true;
                 $add->user = (object)[];
                 $add->my_reactions = [];
@@ -265,9 +265,9 @@ class PostService extends Service {
                 $add->country = '';
                 $add->tags = [];
                 $add->tagged_users = [];
-                $add->total_likes = 0;
-                $add->total_comments = 0;
-                $add->allow_comments = 0;
+                $add->total_likes = (int)0;
+                $add->total_comments = (int)0;
+                $add->allow_comments = (bool)0;
                 $add->categories = [];
                 $processedAdds->push($add);
             }
@@ -282,6 +282,12 @@ class PostService extends Service {
                 $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
                 $post->is_add = false;
                 $post->link = '';
+                $post->id = (int)$post->id;
+                $post->user_id = (int)$post->user_id;
+                $post->total_likes = (int)$post->total_likes;
+                $post->total_comments = (int)$post->total_comments;
+                $post->allow_comments = (bool)$post->allow_comments;
+
                 $posts->push($post);
                 if($postCount % 5 == 0) {
                     if(isset($processedAdds[$addCount])) {

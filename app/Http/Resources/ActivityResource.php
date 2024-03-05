@@ -15,11 +15,11 @@ class ActivityResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int)$this->id,
             'sender' => new UserShortResource($this->whenLoaded('sender')),
-            'model_id' => $this->model_id,
+            'model_id' => (int)$this->model_id,
             'type' => $this->type,
-            'is_read' => $this->is_read,
+            'is_read' => (bool)$this->is_read,
             'created_at' => $this->created_at,
         ];
     }

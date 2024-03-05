@@ -15,14 +15,14 @@ class UserShortResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int)$this->id,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'nickname' => $this->nickname,
             'username' => $this->username,
-            'location' => $this->location,
-            'latitude' => $this->latitude,
-            'longitude' => $this->longitude,
+            'location' => (string)$this->location,
+            'latitude' => (string)$this->latitude,
+            'longitude' => (string)$this->longitude,
             'email' => $this->email,
             'image' => $this->image,
             'thumbnail' => $this->thumbnail,
