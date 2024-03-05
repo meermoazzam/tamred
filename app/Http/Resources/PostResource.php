@@ -28,7 +28,7 @@ class PostResource extends JsonResource
             'state' => $this->state,
             'country' => $this->country,
             'tags' => $this->tags,
-            'tagged_users' => (int)$this->tagged_users,
+            'tagged_users' => $this->tagged_users,
             'total_likes' => (int)$this->total_likes,
             'total_comments' => (int)$this->total_comments,
             'allow_comments' => (bool)$this->allow_comments,
