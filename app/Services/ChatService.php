@@ -6,6 +6,7 @@ use Str;
 use App\Http\Resources\Chat\ConversationResource;
 use App\Http\Resources\Chat\MessageResource;
 use App\Http\Resources\Chat\ParticipantResource;
+use App\Models\BlockUser;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use App\Models\Chat\Conversation;
@@ -68,7 +69,7 @@ class ChatService extends Service {
         try{
             $conversations = Conversation::query();
             $conversations->whereHas('participants', function (Builder $query) use ($userId) {
-                $query->where($query->qualifyColumn('user_id'), $userId);
+                $query->where($query->qualifyColumn('user_id'), $userId);    
             })
             ->has('messages')
             ->with(['participants.user', 'latestMessage'])
@@ -93,7 +94,14 @@ class ChatService extends Service {
                 $conversation->unseen_message_count = $messageCount;
                 return $conversation;
             });
-
+            
+            foreach($updatedConversations as $key => $value) {
+                $participant2 = $value->participants->where('user_id', '!=', $userId)->first();
+                if($participant2->user == null) {
+                    unset($updatedConversations[$key]);
+                }
+            }
+            
             $conversations->setCollection($updatedConversations);
 
             return $this->jsonSuccess(200, 'Success', ['conversations' => ConversationResource::collection($conversations)->resource]);
@@ -105,6 +113,19 @@ class ChatService extends Service {
     public function sendMessage(int $userId, Request $data): JsonResponse
     {
         try{
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+            
+            $isParticipantAllowed = Participant::whereNot('user_id', $userId)
+                ->whereNotIn('user_id', $blockedUserIds)
+                ->where('conversation_id', $data['conversation_id'])
+                ->exists(); 
+            if( !$isParticipantAllowed ) {
+                return $this->jsonError(403, 'Forbidden to send message, Messaging blocked for specific account.');
+            }
+
             $conversationCheck = Conversation::where('id', $data['conversation_id'])
                 ->whereHas('participants', function(Builder $query) use ($userId) {
                     $query->where('user_id', $userId);
