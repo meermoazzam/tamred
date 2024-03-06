@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Str;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Adds\AddsRequest;
 use App\Http\Requests\Comment\UpdateRequest as CommentUpdateRequest;
@@ -38,6 +39,7 @@ use App\Traits\ResponseManager;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -73,7 +75,7 @@ class AppController extends Controller
                 ]);
             }
 
-            $user = User::where('email', $request->email)->where('is_admin', 1)->first();
+            $user = User::where('email', $request->email)->where('is_admin', 1)->where('status', 'active')->first();
             if ($user) {
                 if (!Auth::attempt($request->only(['email', 'password'], $request->remember ? true : false))) {
                     return back()->with([
@@ -111,12 +113,14 @@ class AppController extends Controller
         $data['total_parent_categories'] = Category::where('parent_id', null)->get()->count();
         $data['total_sub_categories'] = Category::whereNot('parent_id', null)->get()->count();
         $data['total_comments'] = Comment::all()->count();
+        $data['total_adds'] = Add::all()->count();
 
         return view('admin.dashboard')->with($data);
     }
 
     public function getUsers()
-    {   $users = User::withCount(['post', 'follower', 'following', 'album'])
+    {
+        $users = User::withCount(['post', 'follower', 'following', 'album'])
             ->when(request()->status, function (Builder $query) {
                 $query->where('status', request()->status);
             })
@@ -132,6 +136,12 @@ class AppController extends Controller
             $data = $request->validated();
             if($request->status) {
                 $data['status'] = $request->status;
+                if($data['status'] == 'deleted') {
+                    User::where('id', $request->id)->update(['status' => 'deleted']);
+                    Post::where('user_id', $request->id)->update(['status' => 'deleted']);
+                    Album::where('user_id', $request->id)->update(['status' => 'deleted']);
+                    Comment::where('user_id', $request->id)->update(['status' => 'deleted']);
+                }
             }
             $isUpdated = User::where('id', $request->id)->update($data);
 
@@ -368,10 +378,103 @@ class AppController extends Controller
     {
         try {
             $data = $request->validated();
+            $message = 'Successfully updated!';
+            if($data['status'] == 'active') {
+                 $mediaCount = Media::where('mediable_id', $request->id)
+                    ->where('mediable_type', 'add')
+                    ->where('status', 'published')->count();
+                if($mediaCount <= 0) {
+                    $data['status'] = 'created';
+                    $message .= ', But Media Is required to set Add as Active, Please go to Media';
+                }
+            }
             Add::where('id', $request->id)->update($data);
-            return $this->jsonSuccess(200, 'Successfully updated!');
+            return $this->jsonSuccess(200, $message);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
+    }
+
+    // media
+    public function getMedia()
+    {
+        try {
+            $media = [];
+            if(request()->model_type && request()->model_id) {
+                $media = Media::where('mediable_id', request()->model_id)
+                    ->where('mediable_type', request()->model_type)
+                    ->where('status', 'published')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
+            return view('admin.media.index')->with(['media' => $media]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+    public function deleteMedia(Request $request)
+    {
+        try {
+            $addId = Media::where('id', $request->id)->first()->mediable_id;
+            $mediaCount = Media::where('mediable_id', $addId)
+                    ->where('mediable_type', 'add')
+                    ->where('status', 'published')->count();
+            if($mediaCount <= 1) {
+                return $this->jsonError(200, 'Please Add another Media before deletion');
+            }
+
+
+            if($request->id) {
+                $media = Media::where('id', $request->id)->update(['status' => 'deleted']);
+                return $this->jsonSuccess(204, 'Media Deleted Successfully');
+            } else {
+                return $this->jsonError(403, 'Media Not Found');
+            }
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+    public function createMedia(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'model_id' => 'required|string',
+            'model_type' => 'required|string|in:add',
+            'type' => 'required|string|in:image,video',
+            'thumbnail' => 'required|file',
+            'media' => 'required|file',
+        ]);
+        if($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation Failed, Please enter the required fields',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $content = $request['media'];
+        $thumb = $request['thumbnail'];
+        $size = $content->getSize()/1024;
+
+        $content_slug = 'tamred/' . env('APP_ENV', 'dev') . '/media/adds/' . $request->model_id . '/content-' . Str::random(10) . '.' . $content->getClientOriginalExtension();
+        $thumb_slug = 'tamred/' . env('APP_ENV', 'dev') . '/media/adds/' . $request->model_id . '/thumbnail-' . Str::random(10) . '.' . $thumb->getClientOriginalExtension();
+
+        // Upload the file to S3
+        Storage::disk(env('STORAGE_DISK', 's3'))->put($thumb_slug, file_get_contents($thumb));
+        Storage::disk(env('STORAGE_DISK', 's3'))->put($content_slug, file_get_contents($content));
+
+        $data = [
+            "user_id" => auth()->id(),
+            "type" => $request['type'],
+            "size" => $size,
+            "mediable_id" => $request['model_id'],
+            "mediable_type" => 'add',
+            "media_key" => $content_slug,
+            "thumbnail_key" => $thumb_slug,
+        ];
+
+        Media::create($data);
+
+        return $this->jsonSuccess(200, 'Media for Adds uploaded Successfully!');
+
     }
 }

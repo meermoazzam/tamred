@@ -193,7 +193,6 @@
                 },
                 error: function(data, XMLHttpRequest) {
                     hideLoader();
-                    console.log(data.responseJSON);maxlength="20"
                     message = 'Error! Failed to update user';
                     if(data.status < 500) {
                         message = data.responseJSON.message;

@@ -263,19 +263,19 @@
                                 </div>
 
                                 <div class="card-start col-xl-4 col-md-4 mb-4">
-                                    <a href="{{ route('admin.posts.get', ['status' => 'deleted']) }}" class="users-tile">
+                                    <a href="{{ route('admin.adds.get') }}" class="users-tile">
                                         <div class="card border-left-primary shadow h-100 py-2">
                                             <div class="card-body">
                                                 <div class="row no-gutters align-items-center">
                                                     <div class="col mr-2">
                                                         <div class="col mr-2">
                                                             <div class="h3 mb-0 font-weight-bold text-gray-800">
-                                                                Deleted Posts
+                                                                Total Adds
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-auto">
-                                                        <h2>{{ $total_deleted_posts }}</h2>
+                                                        <h2>{{ $total_adds }}</h2>
                                                     </div>
                                                 </div>
                                             </div>

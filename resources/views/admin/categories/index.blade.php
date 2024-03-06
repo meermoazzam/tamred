@@ -272,7 +272,6 @@
                 },
                 success: function(data, xhr) {
                     hideLoader();
-                    console.log(xhr);
                     if (xhr == "nocontent") {
                         closeModal("deleteModal");
                         toastr.info("Category Deleted Successfully");

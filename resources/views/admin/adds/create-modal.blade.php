@@ -107,7 +107,9 @@
                         <label style="color: red;"></label>
                         <select id="create-addStatusSelect" name="status" style="width: 100%">
                             @foreach (config('constants.adds.status') as $status)
+                                @if ($status != 'active')
                                     <option value="{{ $status }}">{{ ucwords($status) }}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>

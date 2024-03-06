@@ -72,7 +72,6 @@
                                     <th>Name</th>
                                     <th>Status</th>
                                     <th>Posts</th>
-                                    <th>Media</th>
                                     <th>User's ID</th>
                                     <th>User's Name</th>
                                     <th>User Email</th>
@@ -92,7 +91,6 @@
                                             <span class="badge bg-{{ $badge }} ">{{ $album['status'] }}</span>
                                         </td>
                                         <td>{{ $album['posts_count'] }} <a href="{{ route('admin.posts.get', ['album_id' => $album['id'] ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
-                                        <td>{{ $album['media_count'] }}</td>
                                         <td>{{ $album['user']['id'] }} <a href="{{ route('admin.users.get', ['id' => $album['user']['id'] ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td title="{{ $album['user']['first_name'] . ' ' . $album['user']['last_name'] }}">
                                             {{ $album['user']['first_name'] . ' ' . $album['user']['last_name'] }}
@@ -215,7 +213,6 @@
                 },
                 success: function(data, xhr) {
                     hideLoader();
-                    console.log(xhr);
                     if (xhr == "nocontent") {
                         closeModal("deleteModal");
                         toastr.info("Album Deleted Successfully");

@@ -48,4 +48,8 @@ Route::group(['prefix' => '/admin','as' => 'admin.', 'middleware' => ['auth', 'a
     Route::get('/adds', [AppController::class, 'getAdds'])->name('adds.get');
     Route::post('/adds/create', [AppController::class, 'createAdds'])->name('adds.create');
     Route::post('/adds/update', [AppController::class, 'updateAdds'])->name('adds.update');
+
+    Route::get('/media', [AppController::class, 'getMedia'])->name('media.get');
+    Route::post('/media/create', [AppController::class, 'createMedia'])->name('media.create');
+    Route::post('/media/delete', [AppController::class, 'deleteMedia'])->name('media.delete');
 });

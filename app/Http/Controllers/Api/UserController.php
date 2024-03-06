@@ -102,4 +102,14 @@ class UserController extends ApiController
     {
         return $this->userService->updateDeviceId(auth()->id(), $request);
     }
+
+    public function deleteRequest(Request $request): JsonResponse
+    {
+        return $this->userService->deleteRequest(auth()->id(), $request);
+    }
+
+    public function deleteAction(Request $request)
+    {
+        return $this->userService->deleteAction($request);
+    }
 }

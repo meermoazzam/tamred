@@ -85,11 +85,9 @@
                                     <th>Start Date</th>
                                     <th>End Date</th>
                                     <th>Gender</th>
-                                    <th>Age(Min)</th>
-                                    <th>Age(Max)</th>
-                                    <th>Latitude</th>
-                                    <th>Longitude</th>
-                                    <th>Range</th>
+                                    <th>Age(Min-Max)</th>
+                                    <th>Latitude, Longitude</th>
+                                    <th>Range(km)</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -114,15 +112,13 @@
                                             <span class="badge bg-{{ $badge }} ">{{ $add['status'] }}</span>
                                         </td>
                                         <td title="{{ $add['link'] }}">{{ $add['link'] }}</td>
-                                        <td>{{ $add['media_count'] }}</td>
+                                        <td>{{ $add['media_count'] }} <a href="{{ route('admin.media.get', ['model_type' => 'add', 'model_id' => $add['id'] ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td>{{ $add['start_date'] }}</td>
                                         <td>{{ $add['end_date'] }}</td>
                                         <td>{{ $add['gender'] }}</td>
-                                        <td>{{ $add['min_age'] }}</td>
-                                        <td>{{ $add['max_age'] }}</td>
-                                        <td>{{ $add['latitude'] }}</td>
-                                        <td>{{ $add['longitude'] }}</td>
-                                        <td>{{ $add['range'] }}km</td>
+                                        <td>{{ $add['min_age'] }}-{{ $add['max_age'] }}</td>
+                                        <td>{{ round($add['latitude'], 6) }}, {{ round($add['longitude'], 6) }}</td>
+                                        <td>{{ $add['range'] }}</td>
                                         <td>
                                             <i style="cursor: pointer;" title="Edit"
                                                 onclick="editModalOpener({{ $add['id'] }})" class="fas fa-edit">
@@ -273,7 +269,7 @@
                         toastr.success(data.message);
                         setTimeout(() => {
                             location.reload();
-                        }, 2000);
+                        }, 5000);
                     } else {
                         toastr.error(data['message']);
                     }

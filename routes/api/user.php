@@ -14,11 +14,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/users/delete/action', [UserController::class, 'deleteAction'])->name('user.account.delete');
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users/me', [UserController::class, 'whoAmI']);
 });
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
+
+    Route::post('/users/delete/request', [UserController::class, 'deleteRequest']);
+
     Route::put('/users', [UserController::class, 'update']);
     Route::post('/users/profile-picture/upload', [UserController::class, 'updateProfilePicture']);
     Route::post('/users/device-id/update', [UserController::class, 'updateDeviceId']);

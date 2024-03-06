@@ -8,11 +8,17 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\FollowResource;
 use App\Http\Resources\PersonalResource;
 use App\Http\Resources\UserResource;
+use App\Mail\DeleteAccount;
+use App\Models\Album;
 use App\Models\BlockUser;
+use App\Models\Comment;
 use App\Models\FollowUser;
+use App\Models\Post;
 use App\Models\User;
+use App\Models\UserMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class UserService extends Service
@@ -338,6 +344,50 @@ class UserService extends Service
         try {
             User::where('id', $userId)->update(['device_id' => $request->device_id]);
             return $this->jsonSuccess(200, 'Device Id updated successfully!');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function deleteRequest(int $userId, Request $request): JsonResponse
+    {
+        try {
+            $user = User::find($userId);
+            $token = Str::random(128);
+            UserMeta::updateOrCreate([
+                'user_id' => $userId,
+                'meta_key' => 'account_delete_token',
+            ],[
+                'meta_value' => $token,
+            ]);
+
+            $message = 'Please use this link to delete you account, Open this url in your browser, URL: ' . route('user.account.delete', ['token' => $token]);
+            $emailStatus = Mail::to($user)->send(new DeleteAccount($user->name, $message));
+            // generate email
+            if($emailStatus) {
+                return $this->jsonSuccess(200, 'An Email has bee sent to your email address, please use that link to delete your account.');
+            } else {
+                return $this->jsonError(400, "Failed to send account deletion email, Please contact support.");
+            }
+
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function deleteAction($request) {
+        try {
+            $token = $request->token;
+            $meta = UserMeta::where('meta_key', 'account_delete_token')->where('meta_value', $token)->first();
+            if($meta && $token != null) {
+                UserMeta::where('id', $meta->id)->delete();
+                User::where('id', $meta->user_id)->update(['status' => 'deleted']);
+                Post::where('user_id', $meta->user_id)->update(['status' => 'deleted']);
+                Album::where('user_id', $meta->user_id)->update(['status' => 'deleted']);
+                Comment::where('user_id', $meta->user_id)->update(['status' => 'deleted']);
+                return view('thankyou');
+            }
+            return view('oops');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

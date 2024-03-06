@@ -104,7 +104,7 @@
                                         </td>
                                         {{-- <td>{{ $post['total_likes'] }}</td> --}}
                                         <td>{{ $post['total_comments'] }} <a href="{{ route('admin.comments.get', ['post_id' => $post->id ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
-                                        <td>{{ count($post['media']) }}</td>
+                                        <td>{{ count($post['media']) }} <a href="{{ route('admin.media.get', ['model_type' => 'post', 'model_id' => $post['id'] ]) }}" target="_blank"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td title="{{ $post['location'] }}">{{ $post['location'] }}</td>
                                         <td
                                             title="{{ $post['user']['first_name'] . ' ' . $post['user']['last_name'] . ' (' . $post['user']['email'] . ')' }}">
@@ -198,7 +198,6 @@
                 },
                 error: function(data, XMLHttpRequest) {
                     hideLoader();
-                    console.log(data.responseJSON);
                     maxlength = "20"
                     message = 'Error! Failed to update post';
                     if (data.status < 500) {
