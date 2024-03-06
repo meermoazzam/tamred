@@ -240,7 +240,9 @@ class UserService extends Service
     {
         try {
             $followers = FollowUser::query();
-            $followers->where('followed_id', $userId)
+            $followers->whereHas('userDetailByUserId')
+                ->whereHas('userDetailByFollowedId')    
+                ->where('followed_id', $userId)
                 ->with('userDetailByUserId');
 
             $followers = $followers->paginate($this->perPage);
@@ -263,7 +265,9 @@ class UserService extends Service
     {
         try {
             $followings = FollowUser::query();
-            $followings->where('user_id', $userId)
+            $followings->whereHas('userDetailByUserId')
+                ->whereHas('userDetailByFollowedId')
+                ->where('user_id', $userId)
                 ->with('userDetailByFollowedId');
 
             $followings = $followings->paginate($this->perPage);
