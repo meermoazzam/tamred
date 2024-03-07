@@ -3,7 +3,7 @@
     <div class="modal-dialog" style="min-width: 600px;" role="document">
         <div class="modal-content" style="min-height: 30vh;">
             <div class="modal-header">
-                <h5 class="modal-title">Create Add</h5>
+                <h5 class="modal-title">Create ad</h5>
                 <button class="close btn btn-primary" type="button" data-dismiss="modal"
                     onclick="closeModal('createAddModal')" aria-label="Close">
                     <span aria-hidden="true">×</span>

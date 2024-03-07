@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Adds
+    ads
 @endsection
 
 
@@ -62,12 +62,12 @@
 
         <div class="col-md-2"></div>
         <div id="content" class="col-md-10 p-5"><i class="fa-solid fa-house">
-                <h1 style="font-style: normal">Adds<h1>
+                <h1 style="font-style: normal">ads<h1>
                         <div class=" d-flex justify-content-between">
                             <div class="p-2"></div>
                             <div class="p-2">
                                 <div class="tbl-btn">
-                                    <button class="btn btn-primary" onclick="createModalOpener()">Create New Add</a>
+                                    <button class="btn btn-primary" onclick="createModalOpener()">Create New ad</a>
                                 </div>
                             </div>
                         </div>

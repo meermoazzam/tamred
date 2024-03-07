@@ -151,6 +151,12 @@ class AuthController extends ApiController
                     ], 401);
 				} else {
                     $user = User::where('email', $request->email)->first();
+                    if($user->status != 'active') {
+                        return response()->json([
+                            'status' => false,
+                            'message' => "Failed to login, Your account has been " . auth()->user()->status . ". Please contact support to proceed.",
+                        ], 403);
+                    }
                     return response()->json([
                         'status' => true,
                         'message' => 'User Logged In Successfully',

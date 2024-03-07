@@ -88,7 +88,7 @@
             <li>
                 <a href="{{ route('admin.adds.get'); }}">
                     {{-- <i class="fas fa-home"></i> --}}
-                    Add's
+                    ads
                 </a>
             </li>
         </ul>

@@ -270,7 +270,7 @@
                                                     <div class="col mr-2">
                                                         <div class="col mr-2">
                                                             <div class="h3 mb-0 font-weight-bold text-gray-800">
-                                                                Total Adds
+                                                                Total ads
                                                             </div>
                                                         </div>
                                                     </div>
