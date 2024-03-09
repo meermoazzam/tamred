@@ -106,7 +106,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if($value) {
             return Storage::disk(env('STORAGE_DISK', 's3'))->url($value);
         } else {
-            return config("app.url") . "/images/person.jpg";
+            return Storage::disk('public')->url("/images/person.jpg");
         }
     }
 }
