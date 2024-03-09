@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class AlbumResource extends JsonResource
 {
@@ -24,7 +25,7 @@ class AlbumResource extends JsonResource
             'first_media' => new MediaResource($this->whenHas('first_media')),
             'first_post' => new PostResource($this->whenHas('first_post')),
             'status' => $this->status,
-            'dafault_image' => config("app.url") . "/images/temp.jpg",
+            'dafault_image' => Storage::disk('public')->url("/images/album.jpg"),
             'created_at' => $this->created_at,
         ];
     }
