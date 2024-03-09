@@ -40,9 +40,9 @@ class Album extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function itinerary(): HasOne
+    public function itineraries(): HasMany
     {
-        return $this->hasOne(Itinerary::class);
+        return $this->hasMany(Itinerary::class);
     }
 
     public function posts(): BelongsToMany

@@ -30,10 +30,6 @@ class ItinService extends Service {
     {
         try{
             $album = Album::where('id', $data['album_id'])->where('user_id', $userId)->first();
-            $itin = Itinerary::where('album_id', $data['album_id'])->first();
-            if($itin) {
-                return $this->jsonError(403, 'Album already contains Itinerary');
-            }
             if($album) {
                 $itinerary = Itinerary::create([
                     'user_id' => $userId,
@@ -71,11 +67,18 @@ class ItinService extends Service {
         }
     }
 
-    public function list(): JsonResponse
+    public function list($userId): JsonResponse
     {
         try{
             $itinerary = Itinerary::query();
             $itinerary->whereLike('name', request()->name)
+            ->where('user_id', $userId)
+            ->when(request()->album_id, function (Builder $query) {
+                $query->where('album_id', request()->album_id);
+            })
+            ->whereHas('album', function (Builder $query) {
+                $query->where($query->qualifyColumn('status'), '!=', 'deleted');
+            })
             ->withCount('posts')
             ->with('user')
             ->orderBy($this->orderBy, $this->orderIn)

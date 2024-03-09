@@ -41,7 +41,7 @@ class AlbumService extends Service {
     {
         try{
             $album = Album::where('id', $id)->where('user_id', $userId)
-                ->with('itinerary')
+                ->with('itineraries')
                 ->withCount('posts')
                 ->statusNot('deleted')->first();
 
@@ -64,7 +64,7 @@ class AlbumService extends Service {
             $albums->when($userId, function (Builder $query) use ($userId) {
                 $query->where('user_id', $userId);
             })->whereLike('name', request()->name)
-            ->with('itinerary')
+            ->with('itineraries')
             ->withCount('posts')
             ->orderBy($this->orderBy, $this->orderIn)
             ->statusNot('deleted');

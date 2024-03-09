@@ -17,6 +17,7 @@ class ItineraryResource extends JsonResource
         return [
             'id' => (int)$this->id,
             'name' => $this->name,
+            'album_id' => $this->album_id,
             'user' => new UserShortResource($this->whenLoaded('user')),
             'posts_count' => (int)$this->whenHas('posts_count', $this->posts_count, 0),
             'status' => $this->status,
