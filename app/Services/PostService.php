@@ -93,7 +93,7 @@ class PostService extends Service {
     {
         try{
             $post = Post::where('id', $id)
-                    ->with(['user', 'media', 'categories',
+                    ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                     'reactions' => function ($query) use ($userId) {
                         $query->where('user_id', $userId);
                     },
@@ -160,7 +160,7 @@ class PostService extends Service {
                     ->whereNotIn('id', $blockedUserIds);
             })
             ->status('published')
-            ->with(['user', 'media', 'categories',
+            ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 },
@@ -223,7 +223,7 @@ class PostService extends Service {
 
             $finalIds = $postsByIFollowIds->merge($top10FollowedPostIds);
             $finalPosts = Post::whereIn('id', $finalIds)
-                ->with(['user', 'media', 'categories',
+                ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                     'reactions' => function ($query) use ($userId) {
                         $query->where('user_id', $userId);
                     },
@@ -327,7 +327,7 @@ class PostService extends Service {
             })
             ->whereIn('user_id', $top10followedPeople)
             ->status('published')
-            ->with(['user', 'media', 'categories',
+            ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 },
@@ -376,7 +376,7 @@ class PostService extends Service {
             ->whereBetween('longitude', [$minLon, $maxLon])
             ->whereNotIn('user_id', $blockedUserIds)
             ->status('published')
-            ->with(['user', 'media', 'categories',
+            ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 },
@@ -441,7 +441,7 @@ class PostService extends Service {
                 $query->where('user_id', $userId);
             })
             ->status('published')
-            ->with(['user', 'media', 'categories',
+            ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 },
@@ -510,7 +510,7 @@ class PostService extends Service {
                 $query->where('followed_id', $userId);
             })
             ->status('published')
-            ->with(['user', 'media', 'categories',
+            ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 },
@@ -566,7 +566,7 @@ class PostService extends Service {
                     ->whereNotIn('id', $blockedUserIds);
             })
             ->status('published')
-            ->with(['user', 'media', 'categories',
+            ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 },

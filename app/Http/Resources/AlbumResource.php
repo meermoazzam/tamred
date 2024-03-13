@@ -25,6 +25,7 @@ class AlbumResource extends JsonResource
             'first_media' => new MediaResource($this->whenHas('first_media')),
             'first_post' => new PostResource($this->whenHas('first_post')),
             'status' => $this->status,
+            'is_collaborative' => $this->is_collaborative,
             'dafault_image' => Storage::disk('public')->url("/images/album.jpg"),
             'created_at' => $this->created_at,
         ];

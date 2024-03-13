@@ -39,6 +39,7 @@ class UpdateRequest extends FormRequest
                     }
                 ),
             ],
+            'is_collaborative' => 'required|boolean',
         ];
     }
 

@@ -21,6 +21,7 @@ class Album extends Model
         'user_id',
         'name',
         'status',
+        'is_collaborative',
     ];
 
     public function scopeStatus(Builder $query, mixed $status): Builder

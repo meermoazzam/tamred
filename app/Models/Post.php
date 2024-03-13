@@ -102,4 +102,9 @@ class Post extends Model
     {
         return $this->morphMany(Reaction::class, 'reactable', 'reactable_class', 'reactable_id', 'id');
     }
+
+    public function lastThreeLikes(): MorphMany
+    {
+        return $this->morphMany(Reaction::class, 'reactable', 'reactable_class', 'reactable_id', 'id')->latest()->take(3);
+    }
 }

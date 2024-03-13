@@ -42,6 +42,7 @@ class UpdateRequest extends FormRequest
             ],
             'post_ids' => 'required|array',
             'post_ids.*' => 'integer|exists:' . (new Post())->getTable() . ',id',
+            'is_collaborative' => 'required|boolean',
         ];
     }
 

@@ -18,6 +18,7 @@ class Itinerary extends Model
         'name',
         'user_id',
         'album_id',
+        'is_collaborative',
         'data',
     ];
 
@@ -42,7 +43,7 @@ class Itinerary extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
     public function album(): BelongsTo
     {
         return $this->belongsTo(Album::class);

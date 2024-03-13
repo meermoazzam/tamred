@@ -29,6 +29,7 @@ class AlbumService extends Service {
             $album = Album::create([
                 'user_id' => $userId,
                 'name' => $data['name'],
+                'is_collaborative' => $data['is_collaborative'],
                 'status' => 'published'
             ]);
             return $this->jsonSuccess(201, 'Album created successfully!', ['album' => new NameResource($album)]);
@@ -91,7 +92,10 @@ class AlbumService extends Service {
         try{
             $isUpdated = Album::where('id', $id)->where('user_id', $userId)
                 ->statusNot(['deleted', 'default'])
-                ->update(['name' => $data['name']]);
+                ->update([
+                    'name' => $data['name'],
+                    'is_collaborative' => $data['is_collaborative'],
+                ]);
             if( $isUpdated ) {
                 return $this->jsonSuccess(200, 'Updated Successfully', ['album' => new NameResource(Album::find($id))]);
             } else {

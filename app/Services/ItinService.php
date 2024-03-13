@@ -35,12 +35,13 @@ class ItinService extends Service {
                     'user_id' => $userId,
                     'album_id' => $data['album_id'],
                     'name' => $data['name'],
+                    'is_collaborative' => $data['is_collaborative'],
                     'data' => $data['data'],
                     'status' => 'published'
                 ]);
-    
+
                 $itinerary->posts()->attach($data['post_ids']);
-    
+
                 return $this->jsonSuccess(201, 'Itinerary created successfully!', ['itinerary' => new NameResource($itinerary)]);
             } else {
                 return $this->jsonError(403, 'No Album found to create Itinerary');
@@ -100,6 +101,7 @@ class ItinService extends Service {
                 $isUpdated = Itinerary::where('id', $id)->update([
                     'name' => $data['name'],
                     'data' => $data['data'],
+                    'is_collaborative' => $data['is_collaborative'],
                 ]);
                 ItinPost::where("itin_id", $id)->delete();
                 $itinerary->posts()->attach($data['post_ids']);

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name', 200)->nullable();
             $table->json('data')->nullable();
             $table->string('status', 50)->default('published');
+            $table->boolean('is_collaborative')->default(0);
             $table->timestamps();
         });
     }

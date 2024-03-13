@@ -36,6 +36,7 @@ class CreateRequest extends FormRequest
                     }
                 ),
             ],
+            'is_collaborative' => 'required|boolean',
         ];
     }
 
