@@ -36,7 +36,7 @@ class Itinerary extends Model
 
     public function posts(): BelongsToMany
     {
-        return $this->belongsToMany(Post::class, ItinPost::class, 'itin_id', 'post_id')->withTimestamps();
+        return $this->belongsToMany(Post::class, ItinPost::class, 'itin_id', 'post_id')->status('published')->withTimestamps();
     }
 
     public function user(): BelongsTo

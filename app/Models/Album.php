@@ -48,7 +48,7 @@ class Album extends Model
 
     public function posts(): BelongsToMany
     {
-        return $this->belongsToMany(Post::class, (new AlbumPost)->getTable());
+        return $this->belongsToMany(Post::class, (new AlbumPost)->getTable())->status('published');
     }
 
     public function getMediaCountAttribute()

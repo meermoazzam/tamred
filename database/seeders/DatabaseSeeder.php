@@ -13,11 +13,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CategoryTableSeeder::class,
-            UserTableSeeder::class,
-            AlbumTableSeeder::class,
+            // UserTableSeeder::class,
+            // AlbumTableSeeder::class,
             // PostTableSeeder::class,
             // CommentTableSeeder::class,
-            FollowUserTableSeeder::class,
+            // FollowUserTableSeeder::class,
         ]);
     }
 }
