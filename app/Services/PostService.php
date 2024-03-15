@@ -243,11 +243,12 @@ class PostService extends Service {
             $posts = $posts->paginate($this->perPage);
 
             if(request()->page == 1) {
-                $emptyArray = [];
                 // Get the paginated items from the paginator
                 $items = $posts->items();
                 // Add the empty array at the start of the paginated items
-                array_unshift($items, $emptyArray);
+                if(count($items)) {
+                    array_unshift($items, $items[0]);
+                }
                 // Set the modified items back to the paginator
                 $posts->setCollection(collect($items));
             }
