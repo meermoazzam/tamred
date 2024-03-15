@@ -41,12 +41,28 @@ class AlbumService extends Service {
     public function get(int $userId, int $id): JsonResponse
     {
         try{
-            $album = Album::where('id', $id)->where('user_id', $userId)
-                ->with('itineraries')
-                ->withCount('posts')
+            $album = Album::where('id', $id)
+                ->where(function(Builder $query) use ($userId) {
+                    // user owner condition
+                    $query->where($query->qualifyColumn('user_id'), $userId)
+                    // collaboration condition
+                    ->orWhere(function(Builder $query) use ($userId) {
+                        $query->where($query->qualifyColumn('is_collaborative'), 1)
+                        ->whereHas('collabAlbums', function(Builder $query) use ($userId) {
+                            $query->where($query->qualifyColumn('user_id'), $userId);
+                        });
+                    });
+                })
+                ->with('user', 'collaborators')
+                ->withCount('posts', 'collaborators', 'itineraries')
                 ->statusNot('deleted')->first();
 
             if($album) {
+                if ($album->user_id != $userId) {
+                    $album->via_collab = true;
+                } else {
+                    $album->via_collab = false;
+                }
                 $album->media_count = $album->media_count;
                 $album->first_media = $album->first_media;
                 $album->first_post = $album->first_post;
@@ -58,21 +74,35 @@ class AlbumService extends Service {
         }
     }
 
-    public function list(int|null $userId = null): JsonResponse
+    public function list(int $userId): JsonResponse
     {
         try{
             $albums = Album::query();
-            $albums->when($userId, function (Builder $query) use ($userId) {
-                $query->where('user_id', $userId);
-            })->whereLike('name', request()->name)
-            ->with('itineraries')
-            ->withCount('posts')
+            $albums->whereLike('name', request()->name)
+            ->where(function(Builder $query) use ($userId) {
+                // user owner condition
+                $query->where($query->qualifyColumn('user_id'), $userId)
+                // collaboration condition
+                ->orWhere(function(Builder $query) use ($userId) {
+                    $query->where($query->qualifyColumn('is_collaborative'), 1)
+                    ->whereHas('collabAlbums', function(Builder $query) use ($userId) {
+                        $query->where($query->qualifyColumn('user_id'), $userId);
+                    });
+                });
+            })
+            ->with('user', 'collaborators', 'itineraries')
+            ->withCount('posts', 'collaborators', 'itineraries')
             ->orderBy($this->orderBy, $this->orderIn)
             ->statusNot('deleted');
 
             $albums = $albums->paginate($this->perPage);
 
-            $updatedAlbums = $albums->getCollection()->map(function($album) {
+            $updatedAlbums = $albums->getCollection()->map(function($album) use ($userId) {
+                if ($album->user_id != $userId) {
+                    $album->via_collab = true;
+                } else {
+                    $album->via_collab = false;
+                }
                 $album->media_count = $album->media_count;
                 $album->first_media = $album->first_media;
                 $album->first_post = $album->first_post;

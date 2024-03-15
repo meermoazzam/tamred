@@ -4,6 +4,7 @@ namespace App\Http\Requests\Itin;
 
 use App\Models\Itinerary;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -42,7 +43,10 @@ class UpdateRequest extends FormRequest
             ],
             'post_ids' => 'required|array',
             'post_ids.*' => 'integer|exists:' . (new Post())->getTable() . ',id',
+
             'is_collaborative' => 'required|boolean',
+            'user_ids' => 'sometimes|array',
+            'user_ids.*' => 'integer|exists:' . (new User())->getTable() . ',id',
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -66,6 +67,19 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
+    public function scopeStatus(Builder $query, mixed $status): Builder
+    {
+        $status = is_array($status) ? $status : [$status];
+        return $query->whereIn('status', $status);
+    }
+
+    public function scopeStatusNot(Builder $query, mixed $status): Builder
+    {
+        $status = is_array($status) ? $status : [$status];
+        return $query->whereNotIn('status', $status);
+    }
 
     public function follower(): HasMany
     {

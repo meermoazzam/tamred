@@ -65,4 +65,14 @@ class Album extends Model
     {
         return $this->posts->where('status', 'published')->first();
     }
+
+    public function collaborators(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, CollabAlbum::class, 'album_id', 'user_id')->status('active')->withTimestamps();
+    }
+
+    public function collabAlbums(): HasMany
+    {
+        return $this->hasMany(CollabAlbum::class, 'album_id');
+    }
 }

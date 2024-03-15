@@ -241,7 +241,7 @@ class UserService extends Service
         try {
             $followers = FollowUser::query();
             $followers->whereHas('userDetailByUserId')
-                ->whereHas('userDetailByFollowedId')    
+                ->whereHas('userDetailByFollowedId')
                 ->where('followed_id', $userId)
                 ->with('userDetailByUserId');
 
@@ -290,12 +290,24 @@ class UserService extends Service
     {
         try {
             $friends = User::query();
-            $friends->whereHas('follower', function (Builder $query) use ($userId) {
+            $friends->where(function(Builder $query) {
+                $query->when(request()->first_name, function (Builder $query) {
+                    $query->orWhereLike('first_name', request()->first_name);
+                })->when(request()->last_name, function (Builder $query) {
+                    $query->orWhereLike('last_name', request()->last_name);
+                })->when(request()->nickname, function (Builder $query) {
+                    $query->orWhereLike('nickname', request()->nickname);
+                })->when(request()->username, function (Builder $query) {
+                    $query->orWhereLike('username', request()->username);
+                });
+            })
+            ->whereHas('follower', function (Builder $query) use ($userId) {
                 $query->where('user_id', $userId);
             })
             ->whereHas('following', function (Builder $query) use ($userId) {
                 $query->where('followed_id', $userId);
             })
+            ->status('active')
             ->withCount('post', 'follower', 'following')
             ->orderBy($this->orderBy, $this->orderIn);
 
