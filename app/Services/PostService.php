@@ -9,6 +9,7 @@ use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\ReactionResource;
+use App\Http\Resources\SpecialPostResource;
 use App\Http\Resources\UserShortResource;
 use App\Models\Add;
 use App\Models\BlockUser;
@@ -177,6 +178,89 @@ class PostService extends Service {
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function listByAlbumId($userId): JsonResponse
+    {
+        try{
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $posts = Post::query();
+            $posts->when(request()->user_id, function (Builder $query) {
+                $query->where('user_id', request()->user_id);
+            })
+            ->when(request()->title, function (Builder $query) {
+                $query->orWhereLike('title', request()->title);
+            })
+            ->when(request()->description, function (Builder $query) {
+                $query->orWhereLike('description', request()->description);
+            })
+            ->when(request()->city, function (Builder $query) {
+                $query->orWhereLike('city', request()->city);
+            })
+            ->when(request()->state, function (Builder $query) {
+                $query->orWhereLike('state', request()->state);
+            })
+            ->when(request()->country, function (Builder $query) {
+                $query->orWhereLike('country', request()->country);
+            })
+            ->when(request()->tags, function (Builder $query) {
+                $query->whereLike('tags', '"' . request()->tags . '"');
+            })
+            ->when(request()->album_id, function (Builder $query) use ($userId) {
+                $query->whereHas('albumPosts.album', function (Builder $query) use ($userId) {
+                    $query->where($query->qualifyColumn('id'), request()->album_id)
+                        ->where($query->qualifyColumn('user_id'), $userId)
+                        ->where($query->qualifyColumn('status'), '!=', 'deleted');
+                });
+            })
+            ->when(request()->categories, function (Builder $query) {
+                $query->whereHas('categories', function (Builder $query) {
+                    $query->whereIn($query->qualifyColumn('id'), request()->categories)
+                        ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
+                });
+            })
+            ->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
+                $query->where('status', 'active')
+                    ->whereNotIn('id', $blockedUserIds);
+            })
+            ->status('published')
+            ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
+                'reactions' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                },
+            ])
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            $posts = $posts->paginate($this->perPage);
+
+            if(request()->page == 1) {
+                $emptyArray = [];
+                // Get the paginated items from the paginator
+                $items = $posts->items();
+                // Add the empty array at the start of the paginated items
+                array_unshift($items, $emptyArray);
+                // Set the modified items back to the paginator
+                $posts->setCollection(collect($items));
+            }
+
+            $taggedUsersData = [];
+            foreach($posts as $post) {
+                $taggedUsersData = array_merge($taggedUsersData, $post?->tagged_users ?? []);
+            }
+
+            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => SpecialPostResource::collection($posts)->resource,
                 'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource
             ]);
         } catch (Exception $e) {
