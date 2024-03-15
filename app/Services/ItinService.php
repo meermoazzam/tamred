@@ -45,6 +45,7 @@ class ItinService extends Service {
 
                 if($data['is_collaborative'] == true) {
                     $itinerary->collaborators()->attach($data['user_ids']);
+                    $album->collaborators()->attach($data['user_ids']);
                 }
 
                 return $this->jsonSuccess(201, 'Itinerary created successfully!', ['itinerary' => new NameResource($itinerary)]);
