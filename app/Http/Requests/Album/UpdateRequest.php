@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Album;
 
 use App\Models\Album;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -40,6 +41,8 @@ class UpdateRequest extends FormRequest
                 ),
             ],
             'is_collaborative' => 'required|boolean',
+            'user_ids' => 'sometimes|array',
+            'user_ids.*' => 'integer|exists:' . (new User())->getTable() . ',id',
         ];
     }
 

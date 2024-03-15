@@ -46,6 +46,7 @@ class ItinService extends Service {
                 if($data['is_collaborative'] == true) {
                     $itinerary->collaborators()->attach($data['user_ids']);
                     $album->collaborators()->attach($data['user_ids']);
+                    Album::where('id', $album->id)->update(['is_collaborative' => true]);
                 }
 
                 return $this->jsonSuccess(201, 'Itinerary created successfully!', ['itinerary' => new NameResource($itinerary)]);
@@ -136,12 +137,11 @@ class ItinService extends Service {
     public function update(int $userId, int $id, Request $data): JsonResponse
     {
         try{
-            $itinerary = Itinerary::where('id', $id)->where('user_id', $userId)
-                ->statusNot(['deleted'])->first();
+            $itinerary = Itinerary::where('id', $id)->statusNot(['deleted'])->first();
 
             $isCollaborator = CollabItin::where('itin_id', $id)->where('user_id', $userId)->first();
 
-            if($itinerary || $isCollaborator) {
+            if($itinerary && ($itinerary->user_id == $userId || $isCollaborator)) {
 
                 $fields = [
                     'name' => $data['name'],
@@ -159,6 +159,7 @@ class ItinService extends Service {
                         $album = Album::where('id', $itinerary->album_id)->first();
                         if($album) {
                             $album->collaborators()->attach($data['user_ids']);
+                            Album::where('id', $album->id)->update(['is_collaborative' => true]);
                         }
                     } else {
                         CollabItin::where("itin_id", $id)->delete();
@@ -182,16 +183,15 @@ class ItinService extends Service {
     public function delete(int $userId, int $id): JsonResponse
     {
         try{
-            $itinerary = Itinerary::where('id', $id)->where('user_id', $userId)
-                ->statusNot(['deleted'])->first();
+            $itinerary = Itinerary::where('id', $id)->statusNot(['deleted'])->first();
 
             $isCollaborator = CollabItin::where('itin_id', $id)->where('user_id', $userId)->first();
 
-            if($itinerary || $isCollaborator) {
+            if($itinerary && ($itinerary->user_id == $userId || $isCollaborator)) {
                 if( $isCollaborator ) {
                     $isCollaborator->delete();
                 } else {
-                    $itinerary->update(['status' => 'deleted']);
+                    Itinerary::where('id', $id)->update(['status' => 'deleted']);
                 }
                 return $this->jsonSuccess(204, 'Itinerary Deleted successfully');
             } else {

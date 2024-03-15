@@ -11,6 +11,8 @@ use App\Http\Resources\UserResource;
 use App\Mail\DeleteAccount;
 use App\Models\Album;
 use App\Models\BlockUser;
+use App\Models\CollabAlbum;
+use App\Models\CollabItin;
 use App\Models\Comment;
 use App\Models\FollowUser;
 use App\Models\Post;
@@ -189,12 +191,15 @@ class UserService extends Service
         }
     }
 
-    public function unfollow($unfollow_id): JsonResponse
+    public function unfollow($userId, $unfollow_id): JsonResponse
     {
         try {
             $unFollowUser = FollowUser::where('user_id', auth()->id())
                 ->where('followed_id', $unfollow_id)
                 ->delete();
+
+            // Collaboration removal
+            $this->clearCollaborations($userId, $unfollow_id);
 
             return $this->jsonSuccess(200, 'Unfollowed!', []);
         } catch (Exception $e) {
@@ -202,13 +207,16 @@ class UserService extends Service
         }
     }
 
-    public function block($block_id): JsonResponse
+    public function block($userId, $block_id): JsonResponse
     {
         try {
             $blockUser = BlockUser::updateOrCreate([
                 'user_id' => auth()->id(),
                 'blocked_id' => $block_id,
             ], []);
+
+            // Collaboration removal
+            $this->clearCollaborations($userId, $block_id);
 
             // remove from the following/follower list as well
             $isCleared = FollowUser::where(function ($query) use ($block_id) {
@@ -407,5 +415,31 @@ class UserService extends Service
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
+    }
+
+    public function clearCollaborations($userIdOne, $userIdTwo) {
+        CollabAlbum::where(function(Builder $query) use ($userIdOne, $userIdTwo) {
+            $query->where('user_id', $userIdOne)
+            ->whereHas('album', function(Builder $query) use ($userIdTwo) {
+                $query->where($query->qualifyColumn('user_id'), $userIdTwo);
+            });
+        })->orWhere(function(Builder $query) use ($userIdOne, $userIdTwo) {
+            $query->where('user_id', $userIdTwo)
+            ->whereHas('album', function(Builder $query) use ($userIdOne) {
+                $query->where($query->qualifyColumn('user_id'), $userIdOne);
+            });
+        })->delete();
+
+        CollabItin::where(function(Builder $query) use ($userIdOne, $userIdTwo) {
+            $query->where('user_id', $userIdOne)
+            ->whereHas('itin', function(Builder $query) use ($userIdTwo) {
+                $query->where($query->qualifyColumn('user_id'), $userIdTwo);
+            });
+        })->orWhere(function(Builder $query) use ($userIdOne, $userIdTwo) {
+            $query->where('user_id', $userIdTwo)
+            ->whereHas('itin', function(Builder $query) use ($userIdOne) {
+                $query->where($query->qualifyColumn('user_id'), $userIdOne);
+            });
+        })->delete();
     }
 }

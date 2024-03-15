@@ -8,6 +8,9 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Resources\NameResource;
 use App\Http\Resources\AlbumResource;
 use App\Models\AlbumPost;
+use App\Models\CollabAlbum;
+use App\Models\CollabItin;
+use App\Models\Itinerary;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -32,6 +35,11 @@ class AlbumService extends Service {
                 'is_collaborative' => $data['is_collaborative'],
                 'status' => 'published'
             ]);
+
+            if($data['is_collaborative'] == true) {
+                $album->collaborators()->attach($data['user_ids']);
+            }
+
             return $this->jsonSuccess(201, 'Album created successfully!', ['album' => new NameResource($album)]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -120,13 +128,37 @@ class AlbumService extends Service {
     public function update(int $userId, int $id, array $data): JsonResponse
     {
         try{
-            $isUpdated = Album::where('id', $id)->where('user_id', $userId)
-                ->statusNot(['deleted', 'default'])
-                ->update([
+            $album = Album::where('id', $id)->status(['published'])->first();
+
+            $isCollaborator = CollabAlbum::where('album_id', $id)->where('user_id', $userId)->first();
+
+            if($album && ($album?->user_id == $userId || $isCollaborator)) {
+
+                $fields = [
                     'name' => $data['name'],
-                    'is_collaborative' => $data['is_collaborative'],
-                ]);
-            if( $isUpdated ) {
+                ];
+
+                if( !$isCollaborator ) {
+                    $fields['is_collaborative'] = $data['is_collaborative'];
+
+                    if($data['is_collaborative'] == true) {
+                        // sync with Collaborators
+                        $album->collaborators()->sync($data['user_ids']);
+                        // remove all the Itinerary collaboration other than received user_ids
+                        CollabItin::whereNotIn('user_id', $data['user_ids'])
+                        ->whereHas('itin', function(Builder $query) use ($id) {
+                            $query->where($query->qualifyColumn('album_id'), $id);
+                        })->delete();
+
+                    } else {
+                        CollabAlbum::where("album_id", $id)->delete();
+                        CollabItin::whereHas('itin', function(Builder $query) use ($id) {
+                            $query->where($query->qualifyColumn('album_id'), $id);
+                        })->delete();
+                    }
+                }
+
+                Album::where('id', $album->id)->update($fields);
                 return $this->jsonSuccess(200, 'Updated Successfully', ['album' => new NameResource(Album::find($id))]);
             } else {
                 return $this->jsonError(403, 'No album found to udpate');
@@ -139,9 +171,31 @@ class AlbumService extends Service {
     public function delete(int $userId, int $id): JsonResponse
     {
         try{
-            $is_deleted = Album::where('id', $id)->where('user_id', $userId)->statusNot(['default'])
-                ->update(['status' => 'deleted']);
-            if( $is_deleted ) {
+            $album = Album::where('id', $id)->statusNot(['default', 'deleted'])->first();
+
+            $isCollaborator = CollabAlbum::where('album_id', $id)->where('user_id', $userId)->first();
+
+            if($album && ($album?->user_id == $userId || $isCollaborator)) {
+                if( $isCollaborator ) {
+                    // delete collaborator
+                    $isCollaborator->delete();
+                    // delete itins collaboration
+                    CollabItin::where('user_id', $userId)
+                    ->whereHas('itin', function(Builder $query) use ($id) {
+                        $query->where($query->qualifyColumn('album_id'), $id);
+                    })->delete();
+
+                } else {
+                    Album::where('id', $album->id)->update(['status' => 'deleted']);
+                    // delete collaborations
+                    CollabAlbum::where('album_id', $id)->delete();
+                    // delete itins
+                    $itinsUpdate = Itinerary::where('album_id', $id)->update(['status' => 'deleted']);
+                    // delete itin collaborations
+                    CollabItin::whereHas('itin', function(Builder $query) use ($id) {
+                        $query->where($query->qualifyColumn('album_id'), $id);
+                    })->delete();
+                }
                 return $this->jsonSuccess(204, 'Album Deleted successfully');
             } else {
                 return $this->jsonError(403, 'No album found to delete, or can\'t delete default album');
@@ -156,9 +210,12 @@ class AlbumService extends Service {
         try{
             $album = Album::where('id', $data['album_id'])->where('user_id', $userId)
                 ->statusNot(['deleted'])->exists();
+
+            $isCollaborator = CollabAlbum::where('album_id', $data['album_id'])->where('user_id', $userId)->first();
+
             $post = Post::where('id', $data['post_id'])->status('published')->exists();
 
-            if($album && $post) {
+            if( ($album || $isCollaborator) && $post ) {
                 $relation = AlbumPost::firstOrCreate([
                     'album_id' => $data['album_id'],
                     'post_id' => $data['post_id'],
@@ -179,7 +236,9 @@ class AlbumService extends Service {
             $album = Album::where('id', $data['album_id'])->where('user_id', $userId)
                 ->statusNot(['deleted'])->exists();
 
-            if($album) {
+            $isCollaborator = CollabAlbum::where('album_id', $data['album_id'])->where('user_id', $userId)->first();
+
+            if($album || $isCollaborator) {
                 $isDeleted = AlbumPost::where('album_id', $data['album_id'])
                     ->where('post_id', $data['post_id'])->delete();
 

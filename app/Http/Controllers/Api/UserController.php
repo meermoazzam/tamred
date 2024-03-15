@@ -60,12 +60,12 @@ class UserController extends ApiController
 
     public function unfollow(ActionRequest $request): JsonResponse
     {
-        return $this->userService->unfollow($request['user_id']);
+        return $this->userService->unfollow(auth()->id(), $request['user_id']);
     }
 
     public function block(ActionRequest $request): JsonResponse
     {
-        return $this->userService->block($request['user_id']);
+        return $this->userService->block(auth()->id(), $request['user_id']);
     }
 
     public function unblock(ActionRequest $request): JsonResponse
