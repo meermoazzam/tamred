@@ -201,4 +201,16 @@ class ItinService extends Service {
             return $this->jsonException($e->getMessage());
         }
     }
+
+    public function deleteMultiple(int $userId, Request $request): JsonResponse
+    {
+        try{
+            foreach($request['ids'] as $id) {
+                $response = $this->delete($userId, $id);
+            }
+            return $this->jsonSuccess(204, 'Itineraries Deleted successfully');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
 }

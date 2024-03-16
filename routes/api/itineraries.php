@@ -20,4 +20,5 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/itin/{id}', [ItinController::class, 'get']);
     Route::put('/itin/{id}', [ItinController::class, 'update']);
     Route::delete('/itin/{id}', [ItinController::class, 'delete']);
+    Route::delete('/itin', [ItinController::class, 'deleteMultiple']);
 });

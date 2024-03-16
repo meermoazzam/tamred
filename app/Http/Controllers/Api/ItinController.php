@@ -6,6 +6,7 @@ use App\Http\Requests\Itin\CreateRequest;
 use App\Http\Requests\Itin\UpdateRequest;
 use App\Services\ItinService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ItinController extends ApiController
 {
@@ -44,5 +45,10 @@ class ItinController extends ApiController
     public function delete($id): JsonResponse
     {
         return $this->itinService->delete(auth()->id(), $id);
+    }
+
+    public function deleteMultiple(Request $request): JsonResponse
+    {
+        return $this->itinService->deleteMultiple(auth()->id(), $request);
     }
 }
