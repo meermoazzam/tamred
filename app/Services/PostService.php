@@ -146,7 +146,6 @@ class PostService extends Service {
             ->when(request()->album_id, function (Builder $query) use ($userId) {
                 $query->whereHas('albumPosts.album', function (Builder $query) use ($userId) {
                     $query->where($query->qualifyColumn('id'), request()->album_id)
-                        ->where($query->qualifyColumn('user_id'), $userId)
                         ->where($query->qualifyColumn('status'), '!=', 'deleted');
                 });
             })
@@ -218,7 +217,6 @@ class PostService extends Service {
             ->when(request()->album_id, function (Builder $query) use ($userId) {
                 $query->whereHas('albumPosts.album', function (Builder $query) use ($userId) {
                     $query->where($query->qualifyColumn('id'), request()->album_id)
-                        ->where($query->qualifyColumn('user_id'), $userId)
                         ->where($query->qualifyColumn('status'), '!=', 'deleted');
                 });
             })

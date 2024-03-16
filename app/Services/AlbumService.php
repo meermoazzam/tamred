@@ -161,7 +161,7 @@ class AlbumService extends Service {
                 Album::where('id', $album->id)->update($fields);
                 return $this->jsonSuccess(200, 'Updated Successfully', ['album' => new NameResource(Album::find($id))]);
             } else {
-                return $this->jsonError(403, 'No album found to udpate');
+                return $this->jsonError(403, 'No album found to udpate, or cannot update default Album');
             }
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
