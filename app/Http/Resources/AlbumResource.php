@@ -30,7 +30,7 @@ class AlbumResource extends JsonResource
             'status' => $this->status,
             'via_collab' => (bool)$this->whenHas('via_collab', $this->via_collab, false),
             'is_collaborative' => $this->is_collaborative,
-            'dafault_image' => Storage::disk('public')->url("/images/album.jpg"),
+            'default_image' => Storage::disk('public')->url("/images/album.png"),
             'created_at' => $this->created_at,
         ];
     }
