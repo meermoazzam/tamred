@@ -11,6 +11,7 @@ use App\Http\Resources\PostResource;
 use App\Http\Resources\ReactionResource;
 use App\Http\Resources\SpecialPostResource;
 use App\Http\Resources\UserShortResource;
+use App\Models\Activities;
 use App\Models\Add;
 use App\Models\BlockUser;
 use App\Models\Comment;
@@ -61,6 +62,14 @@ class PostService extends Service {
                 'allow_comments' => $data['allow_comments'] === false ? false : true,
             ]);
 
+            // WRITE ACTIVITY
+            foreach($post['tagged_users'] as $username) {
+                $user = User::where('username', $username)->first();
+                if($user) {
+                    $this->activityService->generateActivity($user->id, $userId, 'tagged_on_post', $post->id);
+                }
+            }
+
             return $this->jsonSuccess(201, 'Post created successfully!',
                 [
                     'post' => new PostResource($post),
@@ -102,7 +111,7 @@ class PostService extends Service {
                 ->status('published')->first();
 
             $taggedUsersData = $post?->tagged_users != null ? $post->tagged_users : [];
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData))->get();
+            $taggedUsersData = User::whereIn('username', array_unique($taggedUsersData))->get();
 
             return $this->jsonSuccess(200, 'Success', [
                 'post' => $post ? new PostResource($post) : [],
@@ -169,11 +178,7 @@ class PostService extends Service {
 
             $posts = $posts->paginate($this->perPage);
 
-            $taggedUsersData = [];
-            foreach($posts as $post) {
-                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
-            }
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => PostResource::collection($posts)->resource,
@@ -251,12 +256,7 @@ class PostService extends Service {
                 $posts->setCollection(collect($items));
             }
 
-            $taggedUsersData = [];
-            foreach($posts as $post) {
-                $taggedUsersData = array_merge($taggedUsersData, $post?->tagged_users ?? []);
-            }
-
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => SpecialPostResource::collection($posts)->resource,
@@ -358,7 +358,7 @@ class PostService extends Service {
             $posts = collect();
             $taggedUsersData = [];
             $postCount = 0;
-            $addCount = 0;
+            $adCount = 0;
 
             foreach($finalPosts as $key => $post) {
                 $postCount += 1;
@@ -373,14 +373,14 @@ class PostService extends Service {
 
                 $posts->push($post);
                 if($postCount % 5 == 0) {
-                    if(isset($processedAdds[$addCount])) {
-                        $posts->push($processedAdds[$addCount]);
-                        $addCount++;
+                    if(isset($processedAdds[$adCount])) {
+                        $posts->push($processedAdds[$adCount]);
+                        $adCount++;
                     }
                 }
             }
 
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+            $taggedUsersData = User::whereIn('username', array_unique($taggedUsersData));
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => $posts,
@@ -418,11 +418,7 @@ class PostService extends Service {
             ->orderBy('created_at', 'desc')
             ->take(10)->get();
 
-            $taggedUsersData = [];
-            foreach($posts as $post) {
-                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
-            }
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => PostResource::collection($posts)->resource,
@@ -468,11 +464,7 @@ class PostService extends Service {
 
             $posts = $posts->paginate($this->perPage);
 
-            $taggedUsersData = [];
-            foreach($posts as $post) {
-                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
-            }
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => PostResource::collection($posts)->resource,
@@ -533,11 +525,7 @@ class PostService extends Service {
 
             $posts = $posts->paginate($this->perPage);
 
-            $taggedUsersData = [];
-            foreach($posts as $post) {
-                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
-            }
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => PostResource::collection($posts)->resource,
@@ -602,11 +590,7 @@ class PostService extends Service {
 
             $posts = $posts->paginate($this->perPage);
 
-            $taggedUsersData = [];
-            foreach($posts as $post) {
-                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
-            }
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => PostResource::collection($posts)->resource,
@@ -656,12 +640,7 @@ class PostService extends Service {
             ])
             ->inRandomOrder()->take(10)->get();
 
-
-            $taggedUsersData = [];
-            foreach($posts as $post) {
-                $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
-            }
-            $taggedUsersData = User::whereIn('id', array_unique($taggedUsersData));
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
 
             return $this->jsonSuccess(200, 'Success', [
                 'posts' => PostResource::collection($posts)->resource,
@@ -672,13 +651,40 @@ class PostService extends Service {
         }
     }
 
+    public function fetchTaggedUsers($posts) {
+        $taggedUsersData = [];
+        foreach($posts as $post) {
+            $taggedUsersData = array_merge($taggedUsersData, $post->tagged_users);
+        }
+        $taggedUsersData = User::whereIn('username', array_unique($taggedUsersData));
+        return $taggedUsersData;
+    }
+
     public function update(int $userId, int $id, array $data): JsonResponse
     {
         try{
             $isUpdated = Post::where('id', $id)->where('user_id', $userId)
                 ->statusNot(['archived', 'deleted'])
                 ->update($data);
+
             if( $isUpdated ) {
+
+                // WRITE ACTIVITY
+                foreach($data['tagged_users'] as $username) {
+                    $user = User::where('username', $username)->first();
+                    if($user) {
+                        $activity = Activities::where('user_id', $user->id)
+                            ->where('caused_by', $userId)
+                            ->where('model_id', $id)
+                            ->where('type', 'tagged_on_post')
+                            ->first();
+
+                        if( !$activity ) {
+                            $this->activityService->generateActivity($user->id, $userId, 'tagged_on_post', $id);
+                        }
+                    }
+                }
+
                 return $this->jsonSuccess(200, 'Updated Successfully', ['post' => new PostResource(Post::find($id))]);
             } else {
                 return $this->jsonError(403, 'No post found to udpate');

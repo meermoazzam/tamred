@@ -26,6 +26,7 @@ return [
             'liked',
             'posted',
             'new_message',
+            'tagged_on_post'
         ]
     ],
     'adds' => [
