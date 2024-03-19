@@ -7,6 +7,7 @@ use App\Models\Album;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\NameResource;
 use App\Http\Resources\AlbumResource;
+use App\Models\Activities;
 use App\Models\AlbumPost;
 use App\Models\CollabAlbum;
 use App\Models\CollabItin;
@@ -17,13 +18,20 @@ use Illuminate\Database\Eloquent\Builder;
 class AlbumService extends Service {
 
     private $perPage, $orderBy, $orderIn;
+    /**
+	* @var activityService
+	*/
+	private $activityService;
+
 	/**
-    * AlbumService Constructor
+     * PostService Constructor
+     * @param ActivityService
     */
-    public function __construct() {
+    public function __construct(ActivityService $activityService) {
         $this->perPage = request()->per_page ?? 10;
         $this->orderBy = request()->order_by ?? 'id';
         $this->orderIn = request()->order_in ?? 'asc';
+        $this->activityService = $activityService;
     }
 
     public function create(int $userId, array $data): JsonResponse
@@ -38,6 +46,11 @@ class AlbumService extends Service {
 
             if($data['is_collaborative'] == true) {
                 $album->collaborators()->attach($data['user_ids']);
+
+                // WRITE ACTIVITY
+                foreach($data['user_ids'] as $collaborId) {
+                    $this->activityService->generateActivity($collaborId, $userId, 'collab_on_album', $album->id);
+                }
             }
 
             return $this->jsonSuccess(201, 'Album created successfully!', ['album' => new NameResource($album)]);
@@ -149,6 +162,19 @@ class AlbumService extends Service {
                         ->whereHas('itin', function(Builder $query) use ($id) {
                             $query->where($query->qualifyColumn('album_id'), $id);
                         })->delete();
+
+                        // WRITE ACTIVITY
+                        foreach($data['user_ids'] as $collaborId) {
+                            $activity = Activities::where('user_id', $collaborId)
+                                ->where('caused_by', $userId)
+                                ->where('model_id', $album->id)
+                                ->where('type', 'collab_on_album')
+                                ->first();
+
+                            if( !$activity ) {
+                                $this->activityService->generateActivity($collaborId, $userId, 'collab_on_album', $album->id);
+                            }
+                        }
 
                     } else {
                         CollabAlbum::where("album_id", $id)->delete();

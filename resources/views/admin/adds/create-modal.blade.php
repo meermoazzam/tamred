@@ -67,6 +67,7 @@
                         <label>Gender</label>
                         <label style="color: red;"></label>
                         <select id="create-addGenderSelect" name="gender" style="width: 100%">
+                            <option value="all">All</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
                             <option value="other">Other</option>

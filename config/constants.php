@@ -26,7 +26,9 @@ return [
             'liked',
             'posted',
             'new_message',
-            'tagged_on_post'
+            'tagged_on_post',
+            'collab_on_album',
+            'collab_on_itin',
         ]
     ],
     'adds' => [

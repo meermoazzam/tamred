@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\NameResource;
 use App\Http\Resources\PostResource;
+use App\Models\Activities;
 use App\Models\Album;
 use App\Models\CollabItin;
 use App\Models\Itinerary;
@@ -18,13 +19,20 @@ use Illuminate\Http\Request;
 class ItinService extends Service {
 
     private $perPage, $orderBy, $orderIn;
+    /**
+	* @var activityService
+	*/
+	private $activityService;
+
 	/**
-    * AlbumService Constructor
+     * PostService Constructor
+     * @param ActivityService
     */
-    public function __construct() {
+    public function __construct(ActivityService $activityService) {
         $this->perPage = request()->per_page ?? 10;
         $this->orderBy = request()->order_by ?? 'id';
         $this->orderIn = request()->order_in ?? 'asc';
+        $this->activityService = $activityService;
     }
 
     public function create(int $userId, Request $data): JsonResponse
@@ -47,6 +55,11 @@ class ItinService extends Service {
                     $itinerary->collaborators()->attach($data['user_ids']);
                     $album->collaborators()->attach($data['user_ids']);
                     Album::where('id', $album->id)->update(['is_collaborative' => true]);
+
+                    // WRITE ACTIVITY
+                    foreach($data['user_ids'] as $collaborId) {
+                        $this->activityService->generateActivity($collaborId, $userId, 'collab_on_itin', $itinerary->id);
+                    }
                 }
 
                 return $this->jsonSuccess(201, 'Itinerary created successfully!', ['itinerary' => new NameResource($itinerary)]);
@@ -161,6 +174,20 @@ class ItinService extends Service {
                             $album->collaborators()->attach($data['user_ids']);
                             Album::where('id', $album->id)->update(['is_collaborative' => true]);
                         }
+
+                        // WRITE ACTIVITY
+                        foreach($data['user_ids'] as $collaborId) {
+                            $activity = Activities::where('user_id', $collaborId)
+                                ->where('caused_by', $userId)
+                                ->where('model_id', $itinerary->id)
+                                ->where('type', 'collab_on_itin')
+                                ->first();
+
+                            if( !$activity ) {
+                                $this->activityService->generateActivity($collaborId, $userId, 'collab_on_itin', $itinerary->id);
+                            }
+                        }
+
                     } else {
                         CollabItin::where("itin_id", $id)->delete();
                     }

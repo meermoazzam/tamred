@@ -326,7 +326,7 @@ class PostService extends Service {
                 ->where('start_date', '<=', Carbon::today())
                 ->where('end_date', '>=', Carbon::today())
                 ->where('status', 'active')
-                ->where('gender', $user->gender)
+                ->whereIn('gender', [$user->gender, 'all'])
                 ->where('min_age', '<=', $userAge)
                 ->where('max_age', '>=', $userAge)
                 ->with('media')

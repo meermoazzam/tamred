@@ -27,7 +27,7 @@ class AddsRequest extends FormRequest
             'link' => 'required|string|max:1000',
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d',
-            'gender' => 'required|in:male,female,other',
+            'gender' => 'required|in:male,female,other,all',
             'min_age' => 'required',
             'max_age' => 'required',
             'latitude' => 'required',
