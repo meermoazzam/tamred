@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Staudenmeir\EloquentEagerLimit\HasEagerLimit;
 
 class Post extends Model
 {
-    use HasFactory;
+    use HasFactory, HasEagerLimit;
 
     protected $table = 'posts';
 
