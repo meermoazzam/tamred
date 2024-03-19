@@ -17,6 +17,7 @@ class CategoryResource extends JsonResource
         return [
             'id' => (int)$this->id,
             'name' => $this->name,
+            'italian_name' => $this->italian_name,
             'parent_id' => (int)$this->parent_id,
             'icon' => $this->icon,
             'sub_categories_count' => (int)$this->whenHas('subCategories_count', $this->subCategories_count, 0),

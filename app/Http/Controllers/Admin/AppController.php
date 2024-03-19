@@ -213,6 +213,7 @@ class AppController extends Controller
         try {
             $validator = Validator::make($request->all(), [
 	    		'name' => 'required|string',
+	    		'italian_name' => 'required|string',
 	    	]);
 	    	if($validator->fails()) {
                 return response()->json([
@@ -224,6 +225,7 @@ class AppController extends Controller
 
             $data = [
                 'name' => $request->name,
+                'italian_name' => $request->italian_name,
                 'parent_id' => $request->parent_id != 0 ? $request->parent_id : null,
             ];
 
@@ -244,7 +246,8 @@ class AppController extends Controller
     {
         try {
             $data = [
-                'name' => $request->name,
+                'name' => $request->name ?? 'category',
+                'italian_name' => $request->italian_name ?? 'categoria',
                 'parent_id' => $request->parent_id != 0 ? $request->parent_id : null,
             ];
 

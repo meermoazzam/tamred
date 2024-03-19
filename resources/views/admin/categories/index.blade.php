@@ -78,9 +78,10 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th>Total Sub Categories</th>
+                                    <th>Italian Name</th>
+                                    <th>Total Sub Cat.</th>
                                     <th>Image</th>
-                                    <th>Is Sub Category</th>
+                                    <th>Is Sub Cat.</th>
                                     <th>Parent</th>
                                     <th>Created At</th>
                                     <th>Actions</th>
@@ -91,6 +92,7 @@
                                     <tr>
                                         <td title="{{ $category['id'] }}">{{ $category['id'] }}</td>
                                         <td title="{{ $category['name'] }}">{{ $category['name'] }}</td>
+                                        <td title="{{ $category['italian_name'] }}">{{ $category['italian_name'] }}</td>
                                         <td title="{{ $category['sub_categories_count'] }}">
                                             {{ $category['sub_categories_count'] }} <a href="{{ $category['sub_categories_count'] != 0 ? route('admin.categories.get', ['parent_id' => $category->id ]) : '#' }}" target="{{ $category['sub_categories_count'] ? '_blank' : '' }}"><i class="fas fa-external-link-alt"></i></a></td>
                                         <td style="text-align: center;"><img
@@ -151,7 +153,7 @@
         });
 
         function deleteConfirmation(id) {
-            $("#modal-custom-body").html('Category: <b>' + key_categories[id]['name'] + '</b>');
+            $("#modal-custom-body").html('Category: <b>' + key_categories[id]['name'] + '(' + key_categories[id]['italian_name'] + ')</b>');
             $("#delete-modal-success-btn").attr('onclick', "deleteCategory(" + id + ")");
             openModal("deleteModal");
         }
@@ -162,6 +164,7 @@
 
             $("#edit-category-modal-success-btn").attr('onclick', "editCategory(" + id + ")");
             $("#edit-name").val(key_categories[id]['name']);
+            $("#edit-italian-name").val(key_categories[id]['italian_name']);
             $("#edit-parent").val(key_categories[id]['parent_id']).trigger('change');
 
             openModal("editCategoryModal");
@@ -170,6 +173,7 @@
         function createModalOpener() {
             $("#create-category-modal-success-btn").attr('onclick', "createCategory()");
             $("#create-name").val();
+            $("#create-italian-name").val();
             $("#create-parent").val(null).trigger('change');
 
             openModal("createCategoryModal");
@@ -185,6 +189,7 @@
             }
             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
             formData.append('name', $('#create-name').val());
+            formData.append('italian_name', $('#create-italian-name').val());
             formData.append('parent_id', $('#create-parent').val() ?? 0);
 
 
@@ -206,13 +211,12 @@
                         toastr.error(data['message']);
                     }
                 },
-                error: function(XMLHttpRequest) {
+                error: function(data) {
                     hideLoader();
-                    message = 'Error! Failed to create category';
-                    if(data.status < 500) {
-                        message = data.responseJSON.message;
+                    errors = data.responseJSON.errors;
+                    for (key in errors) {
+                        toastr.error(errors[key][0]);
                     }
-                    toastr.error(message);
                 }
             }); // end of ajax function
         }
@@ -228,6 +232,7 @@
             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
             formData.append('id', id);
             formData.append('name', $('#edit-name').val());
+            formData.append('italian_name', $('#edit-italian-name').val());
             formData.append('parent_id', $('#edit-parent').val() ?? 0);
 
 

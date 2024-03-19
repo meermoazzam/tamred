@@ -37,7 +37,10 @@ class CategoryService extends Service {
     {
         try{
             $categories = Category::query();
-            $categories->whereLike('name', request()->name)
+            $categories->where(function(Builder $query) {
+                $query->whereLike('name', request()->name)
+                ->orWhereLike('italian_name', request()->name);
+            })
             ->where('parent_id', null)
             ->with('subCategories')
             ->orderBy($this->orderBy, $this->orderIn);

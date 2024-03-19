@@ -18,6 +18,13 @@
                 </div>
                 <br>
                 <div class="form-group">
+                    <label>Name In Italian</label>
+                    <label style="color: red;">*</label>
+                    <input class="form-control" type="text" name="italian-name" id="edit-italian-name" placeholder="Category Name in Italian"
+                        autocomplete="off">
+                </div>
+                <br>
+                <div class="form-group">
                     <label>Choose File/Icon</label>
                     <label style="color: red;"></label>
                     <input class="form-control" type="file" name="icon" id="edit-file" accept="image/*">
