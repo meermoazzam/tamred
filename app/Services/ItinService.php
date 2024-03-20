@@ -94,7 +94,37 @@ class ItinService extends Service {
                 ->with('media')
                 ->status('published')->get();
 
-            return $this->jsonSuccess(200, 'Success', ['posts' => PostResource::collection($posts)]);
+
+            $itinerary = Itinerary::where('id', $id)
+            ->where(function(Builder $query) use ($userId, $id) {
+                // user owner condition
+                $query->where('user_id', $userId)
+                // collaboration condition
+                ->orWhere(function(Builder $query) use ($userId, $id) {
+                    $query->where('is_collaborative', 1)
+                    ->whereHas('collabItins', function(Builder $query) use ($userId, $id) {
+                        $query->where($query->qualifyColumn('user_id'), $userId)
+                        ->where($query->qualifyColumn('itin_id'), $id);
+                    });
+                });
+            })
+            ->withCount('posts', 'collaborators')
+            ->with('user', 'collaborators')
+            ->status('published')
+            ->first();
+
+            if($itinerary) {
+                if ($itinerary->user_id != $userId) {
+                    $itinerary->via_collab = true;
+                } else {
+                    $itinerary->via_collab = false;
+                }
+            }
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts),
+                'itinerary' => $itinerary ? new ItineraryResource($itinerary) : []
+            ]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
