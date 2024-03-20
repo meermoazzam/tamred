@@ -9,8 +9,10 @@ use App\Http\Resources\FollowResource;
 use App\Http\Resources\PersonalResource;
 use App\Http\Resources\UserResource;
 use App\Mail\DeleteAccount;
+use App\Models\Activities;
 use App\Models\Album;
 use App\Models\BlockUser;
+use App\Models\Chat\Participant;
 use App\Models\CollabAlbum;
 use App\Models\CollabItin;
 use App\Models\Comment;
@@ -48,6 +50,21 @@ class UserService extends Service
         try {
             $user = User::with('categories')->withCount('post')->find(auth()->id());
             return $this->jsonSuccess(200, 'Success', ['user' => new PersonalResource($user)]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
+    public function onLoadData(int $userId): JsonResponse
+    {
+        try {
+            $data = [
+                'unread_activities_count' => Activities::where('user_id', $userId)->where('is_read', 0)->count(),
+                'unread_conversations_count' => Participant::where('user_id', $userId)->where('status', 'active')
+                    ->where('message_status', 1)->has('conversation.messages')->count(),
+            ];
+            
+            return $this->jsonSuccess(200, 'Success', $data);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

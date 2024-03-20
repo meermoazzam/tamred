@@ -18,6 +18,7 @@ Route::get('/users/delete/action', [UserController::class, 'deleteAction'])->nam
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users/me', [UserController::class, 'whoAmI']);
+    Route::get('/users/on/load', [UserController::class, 'onLoadData']);
 });
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {

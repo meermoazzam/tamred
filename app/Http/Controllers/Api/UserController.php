@@ -33,6 +33,10 @@ class UserController extends ApiController
         return $this->userService->whoAmI();
     }
 
+    public function onLoadData(): JsonResponse {
+        return $this->userService->onLoadData(auth()->id());
+    }
+
     public function get($id): JsonResponse
     {
         return $this->userService->get($id);
