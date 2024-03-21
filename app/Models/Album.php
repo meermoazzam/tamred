@@ -43,7 +43,7 @@ class Album extends Model
 
     public function itineraries(): HasMany
     {
-        return $this->hasMany(Itinerary::class);
+        return $this->hasMany(Itinerary::class)->status('published');
     }
 
     public function posts(): BelongsToMany
