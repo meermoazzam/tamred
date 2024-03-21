@@ -35,6 +35,7 @@ class UpdateRequest extends FormRequest
             'city' => 'sometimes|required|max:255',
             'state' => 'sometimes|max:255',
             'country' => 'sometimes|required|max:255',
+            'language' => 'sometimes|string|max:100|in:italian,english',
         ];
     }
 }

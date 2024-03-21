@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CategoryResource extends JsonResource
+class AdminCategoryResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,7 +16,8 @@ class CategoryResource extends JsonResource
     {
         return [
             'id' => (int)$this->id,
-            'name' => auth()->user()->language == 'italian' ? $this->italian_name : $this->name,
+            'name' => $this->name,
+            'italian_name' => $this->italian_name,
             'parent_id' => (int)$this->parent_id,
             'icon' => $this->icon,
             'sub_categories_count' => (int)$this->whenHas('subCategories_count', $this->subCategories_count, 0),

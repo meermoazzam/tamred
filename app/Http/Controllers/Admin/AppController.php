@@ -9,7 +9,7 @@ use App\Http\Requests\Comment\UpdateRequest as CommentUpdateRequest;
 use App\Http\Requests\Post\UpdateRequest;
 use App\Http\Requests\User\UpdateRequest as UserUpdateRequest;
 use App\Http\Resources\AlbumResource;
-use App\Http\Resources\CategoryResource;
+use App\Http\Resources\AdminCategoryResource;
 use App\Http\Resources\CommentResource;
 use App\Services\AlbumService;
 use App\Http\Resources\PostResource;
@@ -205,7 +205,7 @@ class AppController extends Controller
             ->when(request()->parent_id, function (Builder $query) {
                 $query->where('parent_id', request()->parent_id);
             })->get();
-        $categories = CategoryResource::collection($categories);
+        $categories = AdminCategoryResource::collection($categories);
         return view('admin.categories.index')->with(['categories' => $categories]);
     }
     public function createCategories(Request $request)

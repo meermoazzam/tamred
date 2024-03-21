@@ -73,6 +73,7 @@ class AuthController extends ApiController
                 'city' => 'required|max:255',
                 'state' => 'max:255',
                 'country' => 'required|max:255',
+                'language' => 'string|max:100|in:italian,english',
                 'terms_and_conditions' => 'required|string|in:true',
                 'privacy_policy' => 'required|string|in:true',
                 'marketing' => 'string',
@@ -103,6 +104,7 @@ class AuthController extends ApiController
                 'city' => $request->city,
                 'state' => $request->state,
                 'country' => $request->country,
+                'language' => $request->language ?? 'italian',
             ]);
 
             // Inserting Meta

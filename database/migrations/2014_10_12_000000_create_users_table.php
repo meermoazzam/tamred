@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('city', 200)->nullable();
             $table->string('state', 200)->nullable();
             $table->string('country', 200)->nullable();
+            $table->string('language', 100)->default('italian');
             $table->string('image')->nullable();
             $table->string('thumbnail')->nullable();
             $table->string('cover')->nullable();

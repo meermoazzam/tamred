@@ -29,6 +29,7 @@ class UserResource extends JsonResource
             'city' => $this->city,
             'state' => $this->state,
             'country' => $this->country,
+            'language' => $this->language,
             'image' => $this->image,
             'thumbnail' => $this->thumbnail,
             'post_count' => (int)$this->post_count ?? 0,
