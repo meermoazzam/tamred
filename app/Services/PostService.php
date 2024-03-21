@@ -153,8 +153,9 @@ class PostService extends Service {
                 $query->whereLike('tags', '"' . request()->tags . '"');
             })
             ->when(request()->album_id, function (Builder $query) use ($userId) {
+                // specific case of getting data from saved posts (all favourite + current album_id)(or Gate)
                 $query->whereHas('albumPosts.album', function (Builder $query) use ($userId) {
-                    $query->where($query->qualifyColumn('id'), request()->album_id)
+                    $query->whereIn($query->qualifyColumn('id'), [request()->album_id, request()->all_favourite_album_id])
                         ->where($query->qualifyColumn('status'), '!=', 'deleted');
                 });
             })
