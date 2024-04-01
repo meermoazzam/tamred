@@ -24,7 +24,9 @@ Route::get('/storage/{extra}', function ($extra) {
     return redirect('/public/storage/' . $extra);
 })->where('extra', '.*');
 
-Route::get('/explore-screen/data', [StaticController::class, 'exploreScreenData']);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/explore-screen/data', [StaticController::class, 'exploreScreenData']);
+});
 Route::get('/terms-conditions', [StaticController::class, 'termsConditions']);
 Route::get('/privacy-policy', [StaticController::class, 'privacyPolicy']);
 Route::get('/marketing', [StaticController::class, 'marketing']);
