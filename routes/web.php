@@ -21,6 +21,7 @@ Route::get('/', function () {
 });
 
 
+Route::get('/explore-screen/data', [StaticController::class, 'exploreScreenData']);
 Route::get('/terms-conditions', [StaticController::class, 'termsConditions']);
 Route::get('/privacy-policy', [StaticController::class, 'privacyPolicy']);
 Route::get('/marketing', [StaticController::class, 'marketing']);

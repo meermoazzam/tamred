@@ -16,19 +16,12 @@ use App\Http\Resources\PostResource;
 use App\Http\Resources\UserResource;
 use App\Models\Add;
 use App\Models\Album;
-use App\Models\BlockUser;
+use App\Models\AppUtils;
 use App\Models\Category;
-use App\Models\CategoryPost;
-use App\Models\Chat\Message;
-use App\Models\Chat\Participant;
 use App\Models\Comment;
-use App\Models\FollowUser;
 use App\Models\Media;
 use App\Models\Post;
-use App\Models\Reaction;
 use App\Models\User;
-use App\Models\UserCategory;
-use App\Models\UserMeta;
 use Exception;
 use Illuminate\Http\Request;
 use App\Services\CategoryService;
@@ -479,5 +472,31 @@ class AppController extends Controller
 
         return $this->jsonSuccess(200, 'Media for Adds uploaded Successfully!');
 
+    }
+
+    public function addExploreScreenImageData(Request $request)
+    {
+        try {
+            $data = [
+                'title' => $request->title ?? '',
+                'description' => $request->description ?? '',
+            ];
+
+            if ($request->file) {
+                $file = $request->file('file');
+                $url = 'images/explorescreen/' . $file->getClientOriginalName();
+                $file->storeAs('images/explorescreen/', $file->getClientOriginalName(), 'public');
+                $data['url'] = $url;
+            }
+
+            $isUpdated = AppUtils::updateOrCreate([
+                    'util_key' => 'explore_screen_data'
+                ], [
+                    'data' => $data
+            ]);
+            return $this->jsonSuccess(200, 'Successfully updated!');
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
     }
 }

@@ -52,4 +52,8 @@ Route::group(['prefix' => '/admin','as' => 'admin.', 'middleware' => ['auth', 'a
     Route::get('/media', [AppController::class, 'getMedia'])->name('media.get');
     Route::post('/media/create', [AppController::class, 'createMedia'])->name('media.create');
     Route::post('/media/delete', [AppController::class, 'deleteMedia'])->name('media.delete');
+
+    Route::get('/exploreScreenData/get', [AppController::class, 'getExploreScreenImageData'])->name('explorescreendata.get');
+    Route::post('/exploreScreenData/add', [AppController::class, 'addExploreScreenImageData'])->name('explorescreendata.add');
 });
+
