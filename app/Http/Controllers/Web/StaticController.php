@@ -23,7 +23,13 @@ class StaticController extends Controller
                 $data = [];
             }
 
-            return $this->jsonSuccess(200, 'Success', $data);
+            $result = [
+                'title' => auth()->user()?->language == 'italian' ? $data['title_italian'] : $data['title'],
+                'description' => auth()->user()?->language == 'italian' ? $data['description_italian'] : $data['description'],
+                'url' => $data['url']
+            ];
+
+            return $this->jsonSuccess(200, 'Success', $result);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }

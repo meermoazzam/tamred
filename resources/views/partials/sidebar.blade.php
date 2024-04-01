@@ -91,6 +91,12 @@
                     ads
                 </a>
             </li>
+            <li>
+                <a href="{{ route('admin.explorescreendata.get'); }}">
+                    {{-- <i class="fas fa-home"></i> --}}
+                    Expl.Screen Data
+                </a>
+            </li>
         </ul>
         <ul class="list-unstyled components" style="position: absolute; bottom: 0px;">
             <li>

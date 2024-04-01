@@ -474,18 +474,45 @@ class AppController extends Controller
 
     }
 
+    public function getExploreScreenImageData()
+    {
+        try {
+            $data = AppUtils::where('util_key', 'explore_screen_data')->first();
+            if($data && $data?->data) {
+                $data = $data->data;
+                $data['url'] = config('app.url') . Storage::url(isset ($data['url']) ? $data['url'] : '');
+            } else {
+                $data = [];
+            }
+
+            return view('admin.explorescreen.index')->with(['data' => $data]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
     public function addExploreScreenImageData(Request $request)
     {
         try {
+            $data = AppUtils::where('util_key', 'explore_screen_data')->first();
+            $url = '';
+            if($data && $data?->data) {
+                $data = $data->data;
+                $url = $data['url'];
+            }
+
             $data = [
                 'title' => $request->title ?? '',
                 'description' => $request->description ?? '',
+                'title_italian' => $request->title_italian ?? '',
+                'description_italian' => $request->description_italian ?? '',
+                'url' => $url,
             ];
 
             if ($request->file) {
                 $file = $request->file('file');
-                $url = 'images/explorescreen/' . $file->getClientOriginalName();
-                $file->storeAs('images/explorescreen/', $file->getClientOriginalName(), 'public');
+                $random = Str::random(10);
+                $url = 'images/explorescreen/' . $random . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('images/explorescreen/', $random . '.' . $file->getClientOriginalExtension(), 'public');
                 $data['url'] = $url;
             }
 
