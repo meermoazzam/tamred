@@ -79,6 +79,18 @@ class Post extends Model
         return $this->belongsToMany(Post::class, (new AlbumPost)->getTable());
     }
 
+    public function myAlbums()
+    {
+        return $this->hasManyThrough(
+            Album::class,
+            AlbumPost::class,
+            'post_id', // Foreign key on the album_post table
+            'id', // Foreign key on the albums table
+            'id', // Local key on the posts table
+            'album_id' // Local key on the album_post table
+        );
+    }
+
     public function albumPosts(): HasMany
     {
         return $this->hasMany(AlbumPost::class);

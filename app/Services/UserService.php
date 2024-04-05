@@ -22,6 +22,7 @@ use App\Models\User;
 use App\Models\UserMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -48,7 +49,14 @@ class UserService extends Service
     public function whoAmI(): JsonResponse
     {
         try {
-            $user = User::with('categories')->withCount('post')->find(auth()->id());
+            $user = User::with('categories')->withCount(['post',
+                'post as country_count' => function($query) {
+                    $query->select(DB::raw('COUNT(DISTINCT country)'))
+                        ->whereNotNull('country')
+                        ->whereNot('country', '')
+                        ->where('status', 'published');
+                }])
+            ->find(auth()->id());
             return $this->jsonSuccess(200, 'Success', ['user' => new PersonalResource($user)]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -63,7 +71,7 @@ class UserService extends Service
                 'unread_conversations_count' => Participant::where('user_id', $userId)->where('status', 'active')
                     ->where('message_status', 1)->has('conversation.messages')->count(),
             ];
-            
+
             return $this->jsonSuccess(200, 'Success', $data);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -73,7 +81,15 @@ class UserService extends Service
     public function get(int $id): JsonResponse
     {
         try {
-            $user = User::withCount(['post', 'follower', 'following'])->find($id);
+            $user = User::withCount([
+                'post', 'follower', 'following',
+                'post as country_count' => function($query) {
+                    $query->select(DB::raw('COUNT(DISTINCT country)'))
+                          ->whereNotNull('country')
+                          ->whereNot('country', '')
+                          ->where('status', 'published');
+                }
+                ])->find($id);
 
             $user->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $id)->exists();
             $user->isMyFollower = FollowUser::where('user_id', $id)->where('followed_id', auth()->id())->exists();

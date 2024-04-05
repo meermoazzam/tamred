@@ -106,6 +106,8 @@ class PostService extends Service {
                     ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                     'reactions' => function ($query) use ($userId) {
                         $query->where('user_id', $userId);
+                    },'myAlbums' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId)->whereNot('status', 'deleted');
                     },
                 ])
                 ->status('published')->first();
@@ -173,6 +175,8 @@ class PostService extends Service {
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
+                },'myAlbums' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
             ])
             ->orderBy($this->orderBy, $this->orderIn);
@@ -240,6 +244,8 @@ class PostService extends Service {
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
+                },'myAlbums' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
             ])
             ->orderBy($this->orderBy, $this->orderIn);
@@ -310,6 +316,8 @@ class PostService extends Service {
                 ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                     'reactions' => function ($query) use ($userId) {
                         $query->where('user_id', $userId);
+                    },'myAlbums' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId)->whereNot('status', 'deleted');
                     },
                 ])->orderBy('created_at', 'desc')->get();
 
@@ -414,6 +422,8 @@ class PostService extends Service {
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
+                },'myAlbums' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
             ])
             ->orderBy('created_at', 'desc')
@@ -459,6 +469,8 @@ class PostService extends Service {
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
+                },'myAlbums' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
             ])
             ->orderBy($this->orderBy, $this->orderIn);
@@ -520,6 +532,8 @@ class PostService extends Service {
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
+                },'myAlbums' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
             ])
             ->orderBy($this->orderBy, $this->orderIn);
@@ -585,6 +599,8 @@ class PostService extends Service {
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
+                },'myAlbums' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
             ])
             ->orderBy($this->orderBy, $this->orderIn);
@@ -637,6 +653,8 @@ class PostService extends Service {
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);
+                },'myAlbums' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
             ])
             ->inRandomOrder()->take(10)->get();
