@@ -359,6 +359,7 @@ class PostService extends Service {
                 $add->country = '';
                 $add->tags = [];
                 $add->tagged_users = [];
+                $add->last_three_likes = [];
                 $add->total_likes = (int)0;
                 $add->albums_count = (int)0;
                 $add->total_comments = (int)0;
