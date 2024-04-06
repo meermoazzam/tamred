@@ -358,8 +358,8 @@ class PostService extends Service {
                     "nickname" => "",
                     "username" => "",
                     "email" => "",
-                    "email_verified_at" => "",
-                    "date_of_birth" => "",
+                    "email_verified_at" => "2024-04-03T12:40:08.000000Z",
+                    "date_of_birth" => "2024-03-07",
                     "gender" => "",
                     "location" => "",
                     "latitude" => "",
@@ -374,8 +374,8 @@ class PostService extends Service {
                     "device_id" => null,
                     "notification_settings" => "",
                     "status" => "",
-                    "created_at" => "",
-                    "updated_at" => ""
+                    "created_at" => "2024-04-03T12:40:08.000000Z",
+                    "updated_at" => "2024-04-03T12:40:08.000000Z"
                 ];
                 $add->my_reactions = [];
                 $add->my_albums = [];
