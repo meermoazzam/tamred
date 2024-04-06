@@ -350,7 +350,7 @@ class PostService extends Service {
                 $add->is_add = true;
                 $add->user = (object)[];
                 $add->my_reactions = [];
-                $add->myAlbums = [];
+                $add->my_albums = [];
                 $add->description = '';
                 $add->location = '';
                 $add->city = '';
