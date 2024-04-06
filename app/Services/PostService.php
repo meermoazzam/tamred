@@ -109,7 +109,7 @@ class PostService extends Service {
                     },'myAlbums' => function ($query) use ($userId) {
                         $query->where('user_id', $userId)->whereNot('status', 'deleted');
                     },
-                ])
+                ])->withCount('albums')
                 ->status('published')->first();
 
             $taggedUsersData = $post?->tagged_users != null ? $post->tagged_users : [];
@@ -178,7 +178,7 @@ class PostService extends Service {
                 },'myAlbums' => function ($query) use ($userId) {
                     $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
-            ])
+            ])->withCount('albums')
             ->orderBy($this->orderBy, $this->orderIn);
 
             $posts = $posts->paginate($this->perPage);
@@ -247,7 +247,7 @@ class PostService extends Service {
                 },'myAlbums' => function ($query) use ($userId) {
                     $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
-            ])
+            ])->withCount('albums')
             ->orderBy($this->orderBy, $this->orderIn);
 
             $posts = $posts->paginate($this->perPage);
@@ -319,7 +319,8 @@ class PostService extends Service {
                     },'myAlbums' => function ($query) use ($userId) {
                         $query->where('user_id', $userId)->whereNot('status', 'deleted');
                     },
-                ])->orderBy('created_at', 'desc')->get();
+                ])->withCount('albums')
+                ->orderBy('created_at', 'desc')->get();
 
             $dateOfBirth = Carbon::parse($user->date_of_birth); // Replace '1990-05-15' with your date of birth
             $userAge = $dateOfBirth->age;
@@ -359,6 +360,7 @@ class PostService extends Service {
                 $add->tags = [];
                 $add->tagged_users = [];
                 $add->total_likes = (int)0;
+                $add->albums_count = (int)0;
                 $add->total_comments = (int)0;
                 $add->allow_comments = (bool)0;
                 $add->categories = [];
@@ -378,6 +380,7 @@ class PostService extends Service {
                 $post->id = (int)$post->id;
                 $post->user_id = (int)$post->user_id;
                 $post->total_likes = (int)$post->total_likes;
+                $post->albums_count = (int)$post->albums_count;
                 $post->total_comments = (int)$post->total_comments;
                 $post->allow_comments = (bool)$post->allow_comments;
 
@@ -426,7 +429,7 @@ class PostService extends Service {
                 },'myAlbums' => function ($query) use ($userId) {
                     $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
-            ])
+            ])->withCount('albums')
             ->orderBy('created_at', 'desc')
             ->take(10)->get();
 
@@ -473,7 +476,7 @@ class PostService extends Service {
                 },'myAlbums' => function ($query) use ($userId) {
                     $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
-            ])
+            ])->withCount('albums')
             ->orderBy($this->orderBy, $this->orderIn);
 
             $posts = $posts->paginate($this->perPage);
@@ -536,7 +539,7 @@ class PostService extends Service {
                 },'myAlbums' => function ($query) use ($userId) {
                     $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
-            ])
+            ])->withCount('albums')
             ->orderBy($this->orderBy, $this->orderIn);
 
             $posts = $posts->paginate($this->perPage);
@@ -603,7 +606,7 @@ class PostService extends Service {
                 },'myAlbums' => function ($query) use ($userId) {
                     $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
-            ])
+            ])->withCount('albums')
             ->orderBy($this->orderBy, $this->orderIn);
 
             $posts = $posts->paginate($this->perPage);
@@ -657,7 +660,7 @@ class PostService extends Service {
                 },'myAlbums' => function ($query) use ($userId) {
                     $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
-            ])
+            ])->withCount('albums')
             ->inRandomOrder()->take(10)->get();
 
             $taggedUsersData = $this->fetchTaggedUsers($posts);

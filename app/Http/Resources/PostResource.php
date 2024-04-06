@@ -19,6 +19,7 @@ class PostResource extends JsonResource
             'user' => new UserShortResource($this->whenLoaded('user')),
             'media' => MediaResource::collection($this->whenLoaded('media')),
             'myAlbums' => NameResource::collection($this->whenLoaded('myAlbums')),
+            'albums_count' => (int)$this->whenHas('albums_count', $this->albums_count, 0),
             'my_reactions' => ReactionResource::collection($this->whenLoaded('reactions')),
             'title' => $this->title,
             'description' => $this->description,
