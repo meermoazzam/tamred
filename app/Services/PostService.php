@@ -498,6 +498,12 @@ class PostService extends Service {
             ->whereBetween('longitude', [$minLon, $maxLon])
             ->whereNotIn('user_id', $blockedUserIds)
             ->status('published')
+            ->when(request()->categories, function (Builder $query) {
+                $query->whereHas('categories', function (Builder $query) {
+                    $query->whereIn($query->qualifyColumn('id'), request()->categories)
+                        ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
+                });
+            })
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
                     $query->where('user_id', $userId);

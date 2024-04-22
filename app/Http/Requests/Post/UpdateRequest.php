@@ -22,7 +22,7 @@ class UpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'sometimes|required|string|max:1000',
+            'title' => 'sometimes|nullable|string|max:1000',
             'description' => 'sometimes|nullable|string|max:10000',
             'location' => 'sometimes|required|string|max:255',
             'latitude' => 'sometimes|required|string|max:20',
