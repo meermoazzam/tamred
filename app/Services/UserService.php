@@ -100,6 +100,30 @@ class UserService extends Service
         }
     }
 
+    public function getByUsername($username): JsonResponse
+    {
+        try {
+            $user = User::withCount([
+                'post', 'follower', 'following',
+                'post as country_count' => function($query) {
+                    $query->select(DB::raw('COUNT(DISTINCT country)'))
+                          ->whereNotNull('country')
+                          ->whereNot('country', '')
+                          ->where('status', 'published');
+                }
+                ])->where('username', $username)->first();
+
+            if($user) {
+                $user->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $user->id)->exists();
+                $user->isMyFollower = FollowUser::where('user_id', $user->id)->where('followed_id', auth()->id())->exists();
+            }
+
+            return $this->jsonSuccess(200, 'Success', ['user' => $user ? new UserResource($user) : []]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
     public function list($userId): JsonResponse
     {
         try {

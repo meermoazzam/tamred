@@ -7,6 +7,7 @@ use App\Models\Comment;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\CommentResource;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -49,6 +50,19 @@ class CommentService extends Service {
 
                 // WRITE ACTIVITY
                 $this->activityService->generateActivity($post->user_id, $userId, 'commented', $post->id);
+                // WRITE ACTIVITY
+                $pattern = '/@(\S+)/';
+                preg_match_all($pattern, $data['description'], $matches);
+                $taggedUsernames = $matches[1];
+                if(count($taggedUsernames)) {
+                    foreach($taggedUsernames as $tag) {
+                        $taggedUser = User::where('username', $tag)->first();
+                        if($taggedUser) {
+                            $this->activityService->generateActivity($taggedUser->id, $userId, 'tagged_in_comment', $comment->id);
+                        }
+                    }
+                }
+
 
                 return $this->jsonSuccess(201, 'Comment created successfully!', ['comment' => new CommentResource($comment)]);
             } else {

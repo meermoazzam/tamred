@@ -27,6 +27,7 @@ return [
             'posted',
             'new_message',
             'tagged_on_post',
+            'tagged_in_comment',
             'collab_on_album',
             'collab_on_itin',
         ]

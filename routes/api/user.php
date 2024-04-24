@@ -31,6 +31,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::post('/users/categories', [UserController::class, 'attachCategories']);
     Route::get('/users/{id}', [UserController::class, 'get']);
+    Route::get('/users/by/username/{username}', [UserController::class, 'getByUsername']);
     Route::get('/users', [UserController::class, 'list']);
     Route::get('/users/by/suggestion', [UserController::class, 'listBySuggestion']);
     Route::post('/users/follow', [UserController::class, 'follow']);

@@ -42,6 +42,11 @@ class UserController extends ApiController
         return $this->userService->get($id);
     }
 
+    public function getByUsername($username): JsonResponse
+    {
+        return $this->userService->getByUsername($username);
+    }
+
     public function list(): JsonResponse
     {
         return $this->userService->list(auth()->id());
