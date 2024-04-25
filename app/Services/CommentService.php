@@ -84,7 +84,7 @@ class CommentService extends Service {
             ->where('post_id', request()->post_id)
             ->where('parent_id', request()->parent_id)
             ->status('published')
-            ->with('user')
+            ->with('user', 'children', 'children.user')
             ->withCount('children')
             ->orderBy($this->orderBy, $this->orderIn);
 

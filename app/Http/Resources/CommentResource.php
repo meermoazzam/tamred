@@ -21,6 +21,7 @@ class CommentResource extends JsonResource
             'description' => $this->description,
             'status' => $this->status,
             'children_count' => (int)$this->children_count ?? 0,
+            'children' => CommentResource::collection($this->whenLoaded('children')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
