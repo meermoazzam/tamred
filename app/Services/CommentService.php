@@ -116,9 +116,10 @@ class CommentService extends Service {
     public function delete(int $userId, int $id): JsonResponse
     {
         try{
-            $comment = Comment::where('id', $id)->where('user_id', $userId)->statusNot('deleted')->first();
+            $comment = Comment::where('id', $id)->statusNot('deleted')->first();
+            $post = Post::where('id', $comment?->post_id)->first();
 
-            if($comment) {
+            if($comment?->user_id == $userId || $post?->user_id == $userId) {
                 $isDeleted = $comment->update(['status' => 'deleted']);
                 $childComments = Comment::query();
                 $childComments->where('parent_id', $id)
