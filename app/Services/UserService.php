@@ -49,14 +49,19 @@ class UserService extends Service
     public function whoAmI(): JsonResponse
     {
         try {
-            $user = User::with('categories')->withCount(['post',
-                'post as country_count' => function($query) {
-                    $query->select(DB::raw('COUNT(DISTINCT country)'))
-                        ->whereNotNull('country')
-                        ->whereNot('country', '')
-                        ->where('status', 'published');
-                }])
+            $user = User::with('categories')->withCount('post')
             ->find(auth()->id());
+
+            if($user?->id) {
+                $countryList = Post::where('user_id', $user->id)->select('country')
+                    ->whereNotNull('country')
+                    ->whereNot('country', '')
+                    ->where('status', 'published')
+                    ->distinct()
+                    ->pluck('country')->toArray();
+                $user->country_list = $countryList;
+            }
+
             return $this->jsonSuccess(200, 'Success', ['user' => new PersonalResource($user)]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -81,15 +86,17 @@ class UserService extends Service
     public function get(int $id): JsonResponse
     {
         try {
-            $user = User::withCount([
-                'post', 'follower', 'following',
-                'post as country_count' => function($query) {
-                    $query->select(DB::raw('COUNT(DISTINCT country)'))
-                          ->whereNotNull('country')
-                          ->whereNot('country', '')
-                          ->where('status', 'published');
-                }
-                ])->find($id);
+            $user = User::withCount('post', 'follower', 'following')->find($id);
+
+            if($user?->id) {
+                $countryList = Post::where('user_id', $user->id)->select('country')
+                    ->whereNotNull('country')
+                    ->whereNot('country', '')
+                    ->where('status', 'published')
+                    ->distinct()
+                    ->pluck('country')->toArray();
+                $user->country_list = $countryList;
+            }
 
             $user->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $id)->exists();
             $user->isMyFollower = FollowUser::where('user_id', $id)->where('followed_id', auth()->id())->exists();
@@ -103,15 +110,17 @@ class UserService extends Service
     public function getByUsername($username): JsonResponse
     {
         try {
-            $user = User::withCount([
-                'post', 'follower', 'following',
-                'post as country_count' => function($query) {
-                    $query->select(DB::raw('COUNT(DISTINCT country)'))
-                          ->whereNotNull('country')
-                          ->whereNot('country', '')
-                          ->where('status', 'published');
-                }
-                ])->where('username', $username)->first();
+            $user = User::withCount('post', 'follower', 'following')->where('username', $username)->first();
+
+            if($user) {
+                $countryList = Post::where('user_id', $user->id)->select('country')
+                    ->whereNotNull('country')
+                    ->whereNot('country', '')
+                    ->where('status', 'published')
+                    ->distinct()
+                    ->pluck('country')->toArray();
+                $user->country_list = $countryList;
+            }
 
             if($user) {
                 $user->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $user->id)->exists();

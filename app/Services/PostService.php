@@ -169,7 +169,12 @@ class PostService extends Service {
             })
             ->whereHas('user', function (Builder $query) use ($userId, $blockedUserIds) {
                 $query->where('status', 'active')
-                    ->whereNotIn('id', $blockedUserIds);
+                ->whereNotIn('id', $blockedUserIds);
+            })
+            ->when(request()->not_my_following, function (Builder $query) use ($userId) {
+                $query->whereDoesntHave('user.follower', function (Builder $query) use ($userId) {
+                    $query->where('user_id', $userId);
+                });
             })
             ->status('published')
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
@@ -293,7 +298,7 @@ class PostService extends Service {
                 $query->where('user_id', $userId);
             })->status('published')
             ->orderBy('created_at', 'desc');
-            $postsByIFollowIds = $postsByIFollow->paginate(10)->pluck('id');
+            $postsByIFollowIds = $postsByIFollow->paginate(100)->pluck('id');
 
             // top 10 now
             $top10followedPeople = User::whereNotIn('id', $blockedUserIds)
@@ -309,7 +314,7 @@ class PostService extends Service {
             ->whereIn('user_id', $top10followedPeople)
             ->status('published')
             ->orderBy('created_at', 'desc');
-            $top10FollowedPostIds = $top10FollowedPosts->paginate(10)->pluck('id');
+            $top10FollowedPostIds = $top10FollowedPosts->paginate(100)->pluck('id');
 
             $finalIds = $postsByIFollowIds->merge($top10FollowedPostIds);
             $finalPosts = Post::whereIn('id', $finalIds)
@@ -325,7 +330,6 @@ class PostService extends Service {
             $dateOfBirth = Carbon::parse($user->date_of_birth); // Replace '1990-05-15' with your date of birth
             $userAge = $dateOfBirth->age;
 
-            // dd($userAge);
             $adds = Add::where(DB::raw('(6371 * acos(
                     cos(radians('.$user->latitude.'))
                     * cos(radians(latitude))

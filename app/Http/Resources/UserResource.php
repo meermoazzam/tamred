@@ -33,7 +33,7 @@ class UserResource extends JsonResource
             'image' => $this->image,
             'thumbnail' => $this->thumbnail,
             'post_count' => (int)$this->post_count ?? 0,
-            'country_count' => (int)$this->country_count ?? 0,
+            'country_list' => $this->country_list ?? [],
             'album_count' => (int)$this->whenHas('album_count', $this->album_count, 0),
             'follower_count' => (int)$this->follower_count ?? 0,
             'following_count' => (int)$this->following_count ?? 0,
