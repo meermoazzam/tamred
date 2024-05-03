@@ -454,6 +454,11 @@ class PostService extends Service {
                 $query->where('status', 'active');
             })
             ->whereIn('user_id', $top10followedPeople)
+            ->when(request()->not_my_following, function (Builder $query) use ($userId) {
+                $query->whereDoesntHave('user.follower', function (Builder $query) use ($userId) {
+                    $query->where('user_id', $userId);
+                });
+            })
             ->status('published')
             ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
                 'reactions' => function ($query) use ($userId) {
@@ -462,8 +467,8 @@ class PostService extends Service {
                     $query->where('user_id', $userId)->whereNot('status', 'deleted');
                 },
             ])->withCount('albums')
-            ->orderBy('created_at', 'desc')
-            ->take(10)->get();
+            ->orderBy($this->orderBy, $this->orderIn)
+            ->take(100)->get();
 
             $taggedUsersData = $this->fetchTaggedUsers($posts);
 
