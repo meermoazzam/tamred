@@ -124,6 +124,33 @@ class PostService extends Service {
         }
     }
 
+    public function getByCommentId(int $userId, int $id): JsonResponse
+    {
+        try{
+            $post = Post::whereHas('comment', function (Builder $query) use ($id) {
+                    $query->where($query->qualifyColumn('id'), $id);
+                })
+                ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
+                    'reactions' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId);
+                    },'myAlbums' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId)->whereNot('status', 'deleted');
+                    },
+                ])->withCount('albums')
+                ->status('published')->first();
+
+            $taggedUsersData = $post?->tagged_users != null ? $post->tagged_users : [];
+            $taggedUsersData = User::whereIn('username', array_unique($taggedUsersData))->get();
+
+            return $this->jsonSuccess(200, 'Success', [
+                'post' => $post ? new PostResource($post) : [],
+                'tagged_users_data' => $taggedUsersData ? UserShortResource::collection($taggedUsersData) : []
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
     public function list($userId): JsonResponse
     {
         try{

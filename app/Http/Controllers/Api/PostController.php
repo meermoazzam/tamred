@@ -43,6 +43,11 @@ class PostController extends Controller
         return $this->postService->get(auth()->id(), $id);
     }
 
+    public function getByCommentId($id): JsonResponse
+    {
+        return $this->postService->getByCommentId(auth()->id(), $id);
+    }
+
     public function list(ListRequest $request): JsonResponse
     {
         return $this->postService->list(auth()->id());

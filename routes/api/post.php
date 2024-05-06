@@ -18,6 +18,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/posts', [PostController::class, 'create']);
     Route::post('/posts/{id}', [PostController::class, 'publish']);
     Route::get('/posts/{id}', [PostController::class, 'get']);
+    Route::get('/posts/by/comment/{id}', [PostController::class, 'getByCommentId']);
     Route::get('/posts', [PostController::class, 'list']);
     Route::get('/posts/by/album-id', [PostController::class, 'listByAlbumId']);
     Route::get('/posts/for/home', [PostController::class, 'listForHome']);
