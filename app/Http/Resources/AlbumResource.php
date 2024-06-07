@@ -21,6 +21,7 @@ class AlbumResource extends JsonResource
             'user' => new UserShortResource($this->whenLoaded('user')),
             'collaborators' => UserShortResource::collection($this->whenLoaded('collaborators')),
             'posts_count' => (int)$this->whenHas('posts_count', $this->posts_count, 0),
+            'post_ids' => $this->whenHas('post_ids', $this->post_ids, []),
             'itineraries_count' => (int)$this->whenHas('itineraries_count', $this->itineraries_count, 0),
             'collaborators_count' => (int)$this->whenHas('collaborators_count', $this->collaborators_count, 0),
             'media_count' => (int)$this->whenHas('media_count', $this->media_count, 0),

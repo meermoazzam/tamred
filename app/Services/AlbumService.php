@@ -111,7 +111,14 @@ class AlbumService extends Service {
                     });
                 });
             })
-            ->with('user', 'collaborators', 'itineraries')
+            ->with([
+                'user',
+                'collaborators',
+                'itineraries',
+                'posts' => function ($query) {
+                    $query->status('published')->select('posts.id');
+                }
+            ])
             ->withCount('posts', 'collaborators', 'itineraries')
             ->orderBy($this->orderBy, $this->orderIn)
             ->statusNot('deleted');
@@ -127,6 +134,7 @@ class AlbumService extends Service {
                 $album->media_count = $album->media_count;
                 $album->first_media = $album->first_media;
                 $album->first_post = $album->first_post;
+                $album->post_ids = $album->posts->pluck('id')->toArray();
                 return $album;
             });
 
