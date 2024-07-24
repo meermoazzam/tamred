@@ -26,6 +26,8 @@ class UserShortResource extends JsonResource
             'email' => $this->email,
             'image' => $this->image,
             'thumbnail' => $this->thumbnail,
+            'in_my_following' => $this->whenHas('inMyFollowing'),
+            'is_my_follower' => $this->whenHas('isMyFollower'),
         ];
     }
 }

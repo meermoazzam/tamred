@@ -10,6 +10,7 @@ use App\Models\Activities;
 use App\Models\Add;
 use App\Models\BlockUser;
 use App\Models\Comment;
+use App\Models\FollowUser;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Reaction;
@@ -555,6 +556,14 @@ class PostService extends Service
                 ->orderBy($this->orderBy, $this->orderIn);
 
             $posts = $posts->paginate(50); // update based on algorithm change
+
+            $updatedPosts = $posts->getCollection()->map(function ($post) {
+                $post->user->inMyFollowing = FollowUser::where('user_id', auth()->id())->where('followed_id', $post->user->id)->exists();
+                $post->user->isMyFollower = FollowUser::where('user_id', $post->user->id)->where('followed_id', auth()->id())->exists();
+                return $post;
+            });
+
+            $posts->setCollection($updatedPosts);
 
             $taggedUsersData = $this->fetchTaggedUsers($posts);
 
