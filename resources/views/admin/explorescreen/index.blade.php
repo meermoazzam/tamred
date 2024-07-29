@@ -93,10 +93,16 @@
                             <label style="color: red;"></label>
                             <input class="form-control" type="file" name="media" id="media" accept="image/*">
                         </div>
+
+                        <br>
+                        <div class="form-group">
+                            <input style="transform: scale(1.5); margin-right: 5px;" type="checkbox" name="remove_older" id="remove_older">
+                            <label>Clear Older Image</label>
+                        </div>
                     </div>
 
                     <div class="col-md-5" id="media">
-                        <img src="{{ isset($data['url']) ? $data['url'] : '' }}" style="max-width: 400px; max-height: 400px" >
+                        <img src="{{ isset($data['url']) ? $data['url'] : '' }}" style="max-width: 400px; max-height: 400px" alt="Oh! No Image Found">
                     </div>
                 </div>
                 <br>
@@ -139,6 +145,7 @@
             formData.append('title_italian', $('#title_italian').val());
             formData.append('description', $('#description').val());
             formData.append('description_italian', $('#description_italian').val());
+            formData.append('remove_older', $('#remove_older').is(":checked"));
 
             $.ajax({
                 type: "post",

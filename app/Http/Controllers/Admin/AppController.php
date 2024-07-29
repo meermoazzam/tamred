@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Str;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Adds\AddsRequest;
 use App\Http\Requests\Comment\UpdateRequest as CommentUpdateRequest;
 use App\Http\Requests\Post\UpdateRequest;
 use App\Http\Requests\User\UpdateRequest as UserUpdateRequest;
-use App\Http\Resources\AlbumResource;
 use App\Http\Resources\AdminCategoryResource;
+use App\Http\Resources\AlbumResource;
 use App\Http\Resources\CommentResource;
-use App\Services\AlbumService;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserResource;
 use App\Models\Add;
@@ -22,31 +20,40 @@ use App\Models\Comment;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\User;
-use Exception;
-use Illuminate\Http\Request;
+use App\Services\AlbumService;
 use App\Services\CategoryService;
 use App\Services\CommentService;
 use App\Services\PostService;
 use App\Services\UserService;
 use App\Traits\ResponseManager;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Symfony\Component\HttpFoundation\Response;
+use Str;
 
 class AppController extends Controller
 {
     use ResponseManager;
 
-    public $albumService, $userService, $postService, $categoryService, $commentService;
+    public $albumService;
+
+    public $userService;
+
+    public $postService;
+
+    public $categoryService;
+
+    public $commentService;
 
     public function __construct(
         AlbumService $albumService, UserService $userService,
         PostService $postService, CategoryService $categoryService,
         CommentService $commentService
-    ){
+    ) {
         $this->albumService = $albumService;
         $this->userService = $userService;
         $this->categoryService = $categoryService;
@@ -70,7 +77,7 @@ class AppController extends Controller
 
             $user = User::where('email', $request->email)->where('is_admin', 1)->where('status', 'active')->first();
             if ($user) {
-                if (!Auth::attempt($request->only(['email', 'password'], $request->remember ? true : false))) {
+                if (! Auth::attempt($request->only(['email', 'password'], $request->remember ? true : false))) {
                     return back()->with([
                         'error' => 'Incorrect Email or Password',
                     ]);
@@ -84,7 +91,7 @@ class AppController extends Controller
             }
         } catch (Exception $exception) {
             return back()->with([
-                'error' => 'Server Error, ' . $exception->getMessage() . '',
+                'error' => 'Server Error, '.$exception->getMessage().'',
             ]);
         }
     }
@@ -92,6 +99,7 @@ class AppController extends Controller
     public function logout()
     {
         Auth::logout();
+
         return redirect()->route('login.get');
     }
 
@@ -121,15 +129,17 @@ class AppController extends Controller
                 $query->where('id', request()->id);
             })->get();
         $users = UserResource::collection($users);
+
         return view('admin.users.index')->with(['users' => $users]);
     }
+
     public function updateUsers(UserUpdateRequest $request)
     {
         try {
             $data = $request->validated();
-            if($request->status) {
+            if ($request->status) {
                 $data['status'] = $request->status;
-                if($data['status'] == 'deleted') {
+                if ($data['status'] == 'deleted') {
                     User::where('id', $request->id)->update(['status' => 'deleted']);
                     Post::where('user_id', $request->id)->update(['status' => 'deleted']);
                     Album::where('user_id', $request->id)->update(['status' => 'deleted']);
@@ -163,23 +173,24 @@ class AppController extends Controller
             })
             ->statusNot('draft')->get();
         $posts = PostResource::collection($posts);
+
         return view('admin.posts.index')->with(['posts' => $posts]);
     }
+
     public function updatePosts(UpdateRequest $request)
     {
         try {
             $data = $request->validated();
-            if($request->status) {
+            if ($request->status) {
                 $data['status'] = $request->status;
             }
             $isUpdated = Post::where('id', $request->id)->update($data);
+
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
-
-
 
     // categories
     public function getCategories()
@@ -189,7 +200,7 @@ class AppController extends Controller
                 $query->where('id', request()->id);
             })
             ->when(request()->hasParent, function (Builder $query) {
-                if(request()->hasParent == 'yes') {
+                if (request()->hasParent == 'yes') {
                     $query->whereNot('parent_id', null);
                 } else {
                     $query->where('parent_id', null);
@@ -199,20 +210,22 @@ class AppController extends Controller
                 $query->where('parent_id', request()->parent_id);
             })->get();
         $categories = AdminCategoryResource::collection($categories);
+
         return view('admin.categories.index')->with(['categories' => $categories]);
     }
+
     public function createCategories(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-	    		'name' => 'required|string',
-	    		'italian_name' => 'required|string',
-	    	]);
-	    	if($validator->fails()) {
+                'name' => 'required|string',
+                'italian_name' => 'required|string',
+            ]);
+            if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Validation Failed, Please enter the required fields',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -224,17 +237,19 @@ class AppController extends Controller
 
             if ($request->file) {
                 $file = $request->file('file');
-                $slug = 'images/categories/' . $file->getClientOriginalName();
+                $slug = 'images/categories/'.$file->getClientOriginalName();
                 $file->storeAs('images/categories/', $file->getClientOriginalName(), 'public');
                 $data['icon'] = $slug;
             }
 
             $category = Category::create($data);
+
             return $this->jsonSuccess(200, 'Successfully created!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
+
     public function updateCategories(Request $request)
     {
         try {
@@ -246,22 +261,23 @@ class AppController extends Controller
 
             if ($request->file) {
                 $file = $request->file('file');
-                $slug = 'images/categories/' . $file->getClientOriginalName();
+                $slug = 'images/categories/'.$file->getClientOriginalName();
                 $file->storeAs('images/categories/', $file->getClientOriginalName(), 'public');
                 $data['icon'] = $slug;
             }
 
             $isUpdated = Category::where('id', $request->id)->update($data);
+
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
+
     public function deleteCategories(Request $request)
     {
         return $this->categoryService->delete($request->id);
     }
-
 
     // albums
     public function getAlbums()
@@ -271,38 +287,44 @@ class AppController extends Controller
                 $query->where('user_id', request()->user_id);
             })->get();
         $albums = AlbumResource::collection($albums);
-        $updatedAlbums = $albums->map(function($album) {
+        $updatedAlbums = $albums->map(function ($album) {
             $album->media_count = $album->media_count;
+
             return $album;
         });
         $albums = $updatedAlbums;
 
         return view('admin.albums.index')->with(['albums' => $albums]);
     }
+
     public function updateAlbums(Request $request)
     {
         try {
             Album::where('id', $request->id)->update(['name' => $request->name]);
+
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
+
     public function deleteAlbums(Request $request)
     {
         $album = Album::where('id', $request->id)->first();
+
         return $this->albumService->delete($album->user_id, $request->id);
     }
+
     public function recoverAlbums(Request $request)
     {
         try {
             $album = Album::where('id', $request->id)->update(['status' => 'published']);
+
             return $this->jsonSuccess(200, 'Album recoverd as published');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
-
 
     // comments
     public function getComments()
@@ -314,28 +336,31 @@ class AppController extends Controller
                 $query->where('parent_id', request()->parent_id);
             })->get();
         $comments = CommentResource::collection($comments);
+
         return view('admin.comments.index')->with(['comments' => $comments]);
     }
+
     public function updateComments(CommentUpdateRequest $request)
     {
         try {
             $data = $request->validated();
-            if($request->status) {
+            if ($request->status) {
                 $data['status'] = $request->status;
                 $comment = Comment::find($request->id);
                 $childComments = Comment::query();
                 $childComments->where('parent_id', $request->id)
-                   ->statusNot('deleted');
+                    ->statusNot('deleted');
                 $childCommentsCount = $childComments->count();
 
-                if($comment->status == 'deleted' && $request->status != 'deleted') {
+                if ($comment->status == 'deleted' && $request->status != 'deleted') {
                     $updatePostCommentCount = Post::where('id', $comment->post_id)->increment('total_comments');
-                } else if ($comment->status != 'deleted' && $request->status == 'deleted') {
+                } elseif ($comment->status != 'deleted' && $request->status == 'deleted') {
                     $childComments->update(['status' => 'deleted']);
                     $updatePostCommentCount = Post::where('id', $comment->post_id)->decrement('total_comments', $childCommentsCount + 1);
                 }
             }
             Comment::where('id', $request->id)->update($data);
+
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -350,6 +375,7 @@ class AppController extends Controller
                 $result[$row[$column]] = $row;
             }
         }
+
         return $result;
     }
 
@@ -358,33 +384,38 @@ class AppController extends Controller
     {
         Add::where('end_date', '<', Carbon::today())->update(['status' => 'expired']);
         $adds = Add::withCount('media')->get();
+
         return view('admin.adds.index')->with(['adds' => $adds]);
     }
+
     public function createAdds(AddsRequest $request)
     {
         try {
             $data = $request->validated();
             Add::create($data);
+
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
+
     public function updateAdds(AddsRequest $request)
     {
         try {
             $data = $request->validated();
             $message = 'Successfully updated!';
-            if($data['status'] == 'active') {
-                 $mediaCount = Media::where('mediable_id', $request->id)
+            if ($data['status'] == 'active') {
+                $mediaCount = Media::where('mediable_id', $request->id)
                     ->where('mediable_type', 'add')
                     ->where('status', 'published')->count();
-                if($mediaCount <= 0) {
+                if ($mediaCount <= 0) {
                     $data['status'] = 'created';
                     $message .= ', But Media Is required to set Add as Active, Please go to Media';
                 }
             }
             Add::where('id', $request->id)->update($data);
+
             return $this->jsonSuccess(200, $message);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
@@ -396,32 +427,34 @@ class AppController extends Controller
     {
         try {
             $media = [];
-            if(request()->model_type && request()->model_id) {
+            if (request()->model_type && request()->model_id) {
                 $media = Media::where('mediable_id', request()->model_id)
                     ->where('mediable_type', request()->model_type)
                     ->where('status', 'published')
                     ->orderBy('created_at', 'desc')
                     ->get();
             }
+
             return view('admin.media.index')->with(['media' => $media]);
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
     }
+
     public function deleteMedia(Request $request)
     {
         try {
             $addId = Media::where('id', $request->id)->first()->mediable_id;
             $mediaCount = Media::where('mediable_id', $addId)
-                    ->where('mediable_type', 'add')
-                    ->where('status', 'published')->count();
-            if($mediaCount <= 1) {
+                ->where('mediable_type', 'add')
+                ->where('status', 'published')->count();
+            if ($mediaCount <= 1) {
                 return $this->jsonError(200, 'Please Add another Media before deletion');
             }
 
-
-            if($request->id) {
+            if ($request->id) {
                 $media = Media::where('id', $request->id)->update(['status' => 'deleted']);
+
                 return $this->jsonSuccess(204, 'Media Deleted Successfully');
             } else {
                 return $this->jsonError(403, 'Media Not Found');
@@ -430,6 +463,7 @@ class AppController extends Controller
             return $this->jsonException($e->getMessage());
         }
     }
+
     public function createMedia(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -439,33 +473,33 @@ class AppController extends Controller
             'thumbnail' => 'required|file',
             'media' => 'required|file',
         ]);
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'message' => 'Validation Failed, Please enter the required fields',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $content = $request['media'];
         $thumb = $request['thumbnail'];
-        $size = $content->getSize()/1024;
+        $size = $content->getSize() / 1024;
 
-        $content_slug = 'tamred/' . env('APP_ENV', 'dev') . '/media/adds/' . $request->model_id . '/content-' . Str::random(10) . '.' . $content->getClientOriginalExtension();
-        $thumb_slug = 'tamred/' . env('APP_ENV', 'dev') . '/media/adds/' . $request->model_id . '/thumbnail-' . Str::random(10) . '.' . $thumb->getClientOriginalExtension();
+        $content_slug = 'tamred/'.env('APP_ENV', 'dev').'/media/adds/'.$request->model_id.'/content-'.Str::random(10).'.'.$content->getClientOriginalExtension();
+        $thumb_slug = 'tamred/'.env('APP_ENV', 'dev').'/media/adds/'.$request->model_id.'/thumbnail-'.Str::random(10).'.'.$thumb->getClientOriginalExtension();
 
         // Upload the file to S3
         Storage::disk(env('STORAGE_DISK', 's3'))->put($thumb_slug, file_get_contents($thumb));
         Storage::disk(env('STORAGE_DISK', 's3'))->put($content_slug, file_get_contents($content));
 
         $data = [
-            "user_id" => auth()->id(),
-            "type" => $request['type'],
-            "size" => $size,
-            "mediable_id" => $request['model_id'],
-            "mediable_type" => 'add',
-            "media_key" => $content_slug,
-            "thumbnail_key" => $thumb_slug,
+            'user_id' => auth()->id(),
+            'type' => $request['type'],
+            'size' => $size,
+            'mediable_id' => $request['model_id'],
+            'mediable_type' => 'add',
+            'media_key' => $content_slug,
+            'thumbnail_key' => $thumb_slug,
         ];
 
         Media::create($data);
@@ -478,9 +512,9 @@ class AppController extends Controller
     {
         try {
             $data = AppUtils::where('util_key', 'explore_screen_data')->first();
-            if($data && $data?->data) {
+            if ($data && $data?->data) {
                 $data = $data->data;
-                $data['url'] = config('app.url') . Storage::url(isset ($data['url']) ? $data['url'] : '');
+                $data['url'] = config('app.url').Storage::url(isset($data['url']) ? $data['url'] : '');
             } else {
                 $data = [];
             }
@@ -490,12 +524,14 @@ class AppController extends Controller
             return $this->jsonException($e->getMessage());
         }
     }
+
     public function addExploreScreenImageData(Request $request)
     {
         try {
             $data = AppUtils::where('util_key', 'explore_screen_data')->first();
             $url = '';
-            if($data && $data?->data) {
+
+            if ($data && $data?->data) {
                 $data = $data->data;
                 $url = $data['url'];
             }
@@ -511,16 +547,19 @@ class AppController extends Controller
             if ($request->file) {
                 $file = $request->file('file');
                 $random = Str::random(10);
-                $url = 'images/explorescreen/' . $random . '.' . $file->getClientOriginalExtension();
-                $file->storeAs('images/explorescreen/', $random . '.' . $file->getClientOriginalExtension(), 'public');
+                $url = 'images/explorescreen/'.$random.'.'.$file->getClientOriginalExtension();
+                $file->storeAs('images/explorescreen/', $random.'.'.$file->getClientOriginalExtension(), 'public');
                 $data['url'] = $url;
+            } elseif ($request['remove_older'] === 'true' || $request['remove_older'] === true) {
+                $data['url'] = '';
             }
 
             $isUpdated = AppUtils::updateOrCreate([
-                    'util_key' => 'explore_screen_data'
-                ], [
-                    'data' => $data
+                'util_key' => 'explore_screen_data',
+            ], [
+                'data' => $data,
             ]);
+
             return $this->jsonSuccess(200, 'Successfully updated!');
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
