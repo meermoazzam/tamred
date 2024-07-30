@@ -314,7 +314,17 @@ class UserService extends Service
     {
         try {
             $followers = FollowUser::query();
-            $followers->whereHas('userDetailByUserId')
+            $followers->whereHas('userDetailByUserId', function(Builder $oQuery) {
+                    return $oQuery->when(request()->first_name, function (Builder $query) {
+                        $query->whereLike('first_name', request()->first_name);
+                    })->when(request()->last_name, function (Builder $query) {
+                        $query->whereLike('last_name', request()->last_name);
+                    })->when(request()->nickname, function (Builder $query) {
+                        $query->whereLike('nickname', request()->nickname);
+                    })->when(request()->username, function (Builder $query) {
+                        $query->whereLike('username', request()->username);
+                    });
+                })
                 ->whereHas('userDetailByFollowedId')
                 ->where('followed_id', $userId)
                 ->with('userDetailByUserId');
@@ -340,7 +350,17 @@ class UserService extends Service
         try {
             $followings = FollowUser::query();
             $followings->whereHas('userDetailByUserId')
-                ->whereHas('userDetailByFollowedId')
+                ->whereHas('userDetailByFollowedId', function(Builder $oQuery) {
+                    return $oQuery->when(request()->first_name, function (Builder $query) {
+                        $query->whereLike('first_name', request()->first_name);
+                    })->when(request()->last_name, function (Builder $query) {
+                        $query->whereLike('last_name', request()->last_name);
+                    })->when(request()->nickname, function (Builder $query) {
+                        $query->whereLike('nickname', request()->nickname);
+                    })->when(request()->username, function (Builder $query) {
+                        $query->whereLike('username', request()->username);
+                    });
+                })
                 ->where('user_id', $userId)
                 ->with('userDetailByFollowedId');
 
