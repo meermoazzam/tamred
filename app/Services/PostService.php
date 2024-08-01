@@ -836,10 +836,13 @@ class PostService extends Service
 
             $taggedUsersData = $this->fetchTaggedUsers($posts);
 
+            $posts = PostResource::collection($posts)->resource;
+
             return $this->jsonSuccess(200, 'Success', [
-                'posts' => PostResource::collection($posts->shuffle())->resource, // update based on algorithm change
+                'posts' => $posts->setCollection($posts->getCollection()->shuffle()),
                 'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource,
             ]);
+
         } catch (Exception $e) {
             return $this->jsonException($e->getMessage());
         }
