@@ -233,6 +233,135 @@ class PostService extends Service
         }
     }
 
+    public function listByCategory($userId): JsonResponse
+    {
+        try {
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $myFollowingsIds = FollowUser::where('user_id', $userId)->pluck('followed_id')->toArray();
+
+            $posts1 = Post::query();
+            $posts1
+                ->when(request()->user_id, function (Builder $query) {
+                    $query->where('user_id', request()->user_id);
+                })
+                ->when(request()->title, function (Builder $query) {
+                    $query->orWhereLike('title', request()->title);
+                })
+                ->when(request()->description, function (Builder $query) {
+                    $query->orWhereLike('description', request()->description);
+                })
+                ->when(request()->city, function (Builder $query) {
+                    $query->orWhereLike('city', request()->city);
+                })
+                ->when(request()->state, function (Builder $query) {
+                    $query->orWhereLike('state', request()->state);
+                })
+                ->when(request()->country, function (Builder $query) {
+                    $query->orWhereLike('country', request()->country);
+                })
+                ->when(request()->tags, function (Builder $query) {
+                    $query->whereLike('tags', '"'.request()->tags.'"');
+                })
+                ->when(request()->album_id, function (Builder $query) {
+                    // specific case of getting data from saved posts (all favourite + current album_id)(or Gate)
+                    $query->whereHas('albumPosts.album', function (Builder $query) {
+                        $query->whereIn($query->qualifyColumn('id'), [request()->album_id, request()->all_favourite_album_id])
+                            ->where($query->qualifyColumn('status'), '!=', 'deleted');
+                    });
+                })
+                ->when(request()->categories, function (Builder $query) {
+                    $query->whereHas('categories', function (Builder $query) {
+                        $query->whereIn($query->qualifyColumn('id'), request()->categories)
+                            ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
+                    });
+                })
+                ->whereHas('user', function (Builder $query) use ($blockedUserIds) {
+                    $query->where('status', 'active')
+                        ->whereNotIn('id', $blockedUserIds);
+                })
+                ->whereNot('user_id', $userId)
+                ->whereNotIn('user_id', $myFollowingsIds)
+                ->status('published')
+                ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
+                    'reactions' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId);
+                    }, 'myAlbums' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId)->whereNot('status', 'deleted');
+                    },
+                ])->withCount('albums')
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            $posts1 = $posts1->paginate(50)->shuffle();
+
+            $posts2 = Post::query();
+            $posts2->when(request()->user_id, function (Builder $query) {
+                $query->where('user_id', request()->user_id);
+                })
+                ->when(request()->title, function (Builder $query) {
+                    $query->orWhereLike('title', request()->title);
+                })
+                ->when(request()->description, function (Builder $query) {
+                    $query->orWhereLike('description', request()->description);
+                })
+                ->when(request()->city, function (Builder $query) {
+                    $query->orWhereLike('city', request()->city);
+                })
+                ->when(request()->state, function (Builder $query) {
+                    $query->orWhereLike('state', request()->state);
+                })
+                ->when(request()->country, function (Builder $query) {
+                    $query->orWhereLike('country', request()->country);
+                })
+                ->when(request()->tags, function (Builder $query) {
+                    $query->whereLike('tags', '"'.request()->tags.'"');
+                })
+                ->when(request()->album_id, function (Builder $query) {
+                    // specific case of getting data from saved posts (all favourite + current album_id)(or Gate)
+                    $query->whereHas('albumPosts.album', function (Builder $query) {
+                        $query->whereIn($query->qualifyColumn('id'), [request()->album_id, request()->all_favourite_album_id])
+                            ->where($query->qualifyColumn('status'), '!=', 'deleted');
+                    });
+                })
+                ->when(request()->categories, function (Builder $query) {
+                    $query->whereHas('categories', function (Builder $query) {
+                        $query->whereIn($query->qualifyColumn('id'), request()->categories)
+                            ->orWhereIn($query->qualifyColumn('parent_id'), request()->categories);
+                    });
+                })
+                ->whereHas('user', function (Builder $query) use ($blockedUserIds) {
+                    $query->where('status', 'active')
+                        ->whereNotIn('id', $blockedUserIds);
+                })
+                ->whereNot('user_id', $userId)
+                ->whereIn('user_id', $myFollowingsIds)
+                ->status('published')
+                ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
+                    'reactions' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId);
+                    }, 'myAlbums' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId)->whereNot('status', 'deleted');
+                    },
+                ])->withCount('albums')
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            $posts2 = $posts2->paginate(50)->shuffle();
+
+            $posts = $posts1->merge($posts2);
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts)->resource,
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource,
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
     public function listByAlbumId($userId): JsonResponse
     {
         try {
@@ -514,6 +643,83 @@ class PostService extends Service
         }
     }
 
+    public function listByLatestTrend($userId): JsonResponse
+    {
+        try {
+            $blockedUserIds = BlockUser::where('blocked_id', $userId)
+                ->orWhere('user_id', $userId)
+                ->pluck('user_id', 'blocked_id')->toArray();
+            $blockedUserIds = array_unique(array_merge(array_keys($blockedUserIds), array_values($blockedUserIds)));
+
+            $myFollowingsIds = FollowUser::where('user_id', $userId)->pluck('followed_id')->toArray();
+
+            $posts1 = Post::whereHas('user', function (Builder $query) {
+                    $query->where('status', 'active');
+                })
+                ->whereHas('user', function (Builder $query) use ($blockedUserIds) {
+                    $query->where('status', 'active')
+                        ->whereNotIn('id', $blockedUserIds);
+                })
+                ->whereNot('user_id', $userId)
+                ->whereNotIn('user_id', $myFollowingsIds)
+
+                // ->when(request()->not_my_following, function (Builder $query) use ($userId) {
+                //     $query->whereDoesntHave('user.follower', function (Builder $query) use ($userId) {
+                //         $query->where('user_id', $userId);
+                //     });
+                // })  // update based on algorithm change
+                ->status('published')
+                ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
+                    'reactions' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId);
+                    }, 'myAlbums' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId)->whereNot('status', 'deleted');
+                    },
+                ])->withCount('albums')
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            $posts1 = $posts1->paginate(50)->shuffle();
+
+            $posts2 = Post::whereHas('user', function (Builder $query) {
+                    $query->where('status', 'active');
+                })
+                ->whereHas('user', function (Builder $query) use ($blockedUserIds) {
+                    $query->where('status', 'active')
+                        ->whereNotIn('id', $blockedUserIds);
+                })
+                ->whereNot('user_id', $userId)
+                ->whereIn('user_id', $myFollowingsIds)
+
+                // ->when(request()->not_my_following, function (Builder $query) use ($userId) {
+                //     $query->whereDoesntHave('user.follower', function (Builder $query) use ($userId) {
+                //         $query->where('user_id', $userId);
+                //     });
+                // })  // update based on algorithm change
+                ->status('published')
+                ->with(['lastThreeLikes.user', 'user', 'media', 'categories',
+                    'reactions' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId);
+                    }, 'myAlbums' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId)->whereNot('status', 'deleted');
+                    },
+                ])->withCount('albums')
+            ->orderBy($this->orderBy, $this->orderIn);
+
+            $posts2 = $posts2->paginate(50)->shuffle();
+
+            $posts = $posts1->merge($posts2);
+
+            $taggedUsersData = $this->fetchTaggedUsers($posts);
+
+            return $this->jsonSuccess(200, 'Success', [
+                'posts' => PostResource::collection($posts)->resource,  // update based on algorithm change
+                'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource,
+            ]);
+        } catch (Exception $e) {
+            return $this->jsonException($e->getMessage());
+        }
+    }
+
     public function listByNearMe($userId): JsonResponse
     {
         try {
@@ -626,12 +832,12 @@ class PostService extends Service
                     ])->withCount('albums')
                 ->orderBy($this->orderBy, $this->orderIn);
 
-            $posts = $posts->paginate($this->perPage);
+            $posts = $posts->paginate(50); // update based on algorithm change
 
             $taggedUsersData = $this->fetchTaggedUsers($posts);
 
             return $this->jsonSuccess(200, 'Success', [
-                'posts' => PostResource::collection($posts)->resource,
+                'posts' => PostResource::collection($posts->shuffle())->resource, // update based on algorithm change
                 'tagged_users_data' => UserShortResource::collection($taggedUsersData->get())->resource,
             ]);
         } catch (Exception $e) {

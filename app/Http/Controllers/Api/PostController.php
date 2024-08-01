@@ -53,6 +53,11 @@ class PostController extends Controller
         return $this->postService->list(auth()->id());
     }
 
+    public function listByCategory(ListRequest $request): JsonResponse
+    {
+        return $this->postService->listByCategory(auth()->id());
+    }
+
     public function listByAlbumId(ListRequest $request): JsonResponse
     {
         return $this->postService->listByAlbumId(auth()->id());
@@ -66,6 +71,11 @@ class PostController extends Controller
     public function listByMostFollowedPeople(): JsonResponse
     {
         return $this->postService->listByMostFollowedPeople(auth()->id());
+    }
+
+    public function listByLatestTrend(): JsonResponse
+    {
+        return $this->postService->listByLatestTrend(auth()->id());
     }
 
     public function listByNearMe(): JsonResponse

@@ -82,11 +82,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $query->whereNotIn('status', $status);
     }
 
+    // To whom i follow
     public function follower(): HasMany
     {
         return $this->hasMany(FollowUser::class, 'followed_id', 'id')->isApproved(true);
     }
 
+    // Those who follow me
     public function following(): HasMany
     {
         return $this->hasMany(FollowUser::class, 'user_id', 'id')->isApproved(true);

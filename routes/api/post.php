@@ -21,8 +21,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/posts/by/comment/{id}', [PostController::class, 'getByCommentId']);
     Route::get('/posts', [PostController::class, 'list']);
     Route::get('/posts/by/album-id', [PostController::class, 'listByAlbumId']);
+    Route::get('/posts/by/category', [PostController::class, 'listByCategory']);
     Route::get('/posts/for/home', [PostController::class, 'listForHome']);
     Route::get('/posts/by/most-followed', [PostController::class, 'listByMostFollowedPeople']);
+    Route::get('/posts/by/latest-trend', [PostController::class, 'listByLatestTrend']);
     Route::get('/posts/by/near-me', [PostController::class, 'listByNearMe']);
     Route::get('/posts/by/users-i-follow', [PostController::class, 'listByUsersIFollow']);
     Route::get('/posts/by/my-friends', [PostController::class, 'listByMyFriends']);
